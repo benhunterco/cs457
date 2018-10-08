@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "vector": "cpp",
+        "*.tcc": "cpp",
+        "tuple": "cpp",
+        "string_view": "cpp"
+    }
+}
