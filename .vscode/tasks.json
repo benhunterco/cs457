@@ -4,17 +4,38 @@
     "version": "2.0.0",
     "tasks": [
         {
-           
             "label": "build driver",
             "type": "shell",
             "command": "g++-8",
             "args": [
-                "-g", "tcpUserSocket.cpp", "tcpServerSocket.cpp", "driver.cpp", "-pthread", "-o", "driver.out"
+                "-g",
+                "tcpUserSocket.cpp",
+                "tcpServerSocket.cpp",
+                "driver.cpp",
+                "-pthread",
+                "-o",
+                "driver.out"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
-        }   
+        },
+        {
+            "label": "build client",
+            "type": "shell",
+            "command": "g++-8",
+            "args": [
+                "-g",
+                "client.cpp",
+                "-o",
+                "client.out"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
     ]
 }
