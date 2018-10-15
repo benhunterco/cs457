@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include "tcp"
 
 int main (int argc, char **argv)
 {
@@ -55,5 +56,7 @@ int main (int argc, char **argv)
     //for now don't do anything, but presumably we could call stuff later. 
     std::cout << "Hostname: " << hostname << " Username: "<< username << " ServerPort: " << serverport << " configfile: "  
         << configFile << " TestFile: "<< testFile << " LogFile: " << logFile << "\n";
+
+    
     return 0;
 }
