@@ -27,6 +27,7 @@
             "command": "g++-8",
             "args": [
                 "-g",
+                "tcpClientSocket.cpp",
                 "client.cpp",
                 "-o",
                 "client.out"

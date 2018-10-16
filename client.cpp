@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include "tcpClientSocket.h"
 
 int main (int argc, char **argv)
 {
@@ -55,5 +56,15 @@ int main (int argc, char **argv)
     //for now don't do anything, but presumably we could call stuff later. 
     std::cout << "Hostname: " << hostname << " Username: "<< username << " ServerPort: " << serverport << " configfile: "  
         << configFile << " TestFile: "<< testFile << " LogFile: " << logFile << "\n";
+
+    //Make the socket.
+    cs457::tcpClientSocket client(2000, std::string("127.0.0.1"));
+    std::string message;
+    while(true)
+    {
+        std::cout << "Input you message: ";
+        std::cin >> message;
+        client.sendString(message);
+    }
     return 0;
 }
