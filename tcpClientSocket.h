@@ -5,6 +5,7 @@
 #include <string>
 #include <memory.h>
 #include <arpa/inet.h>
+#include <mutex>
 
 /*
 make this some sort of usefull wrapper class.
@@ -25,7 +26,7 @@ class tcpClientSocket
 
   public:
     tcpClientSocket(int port, string serverAddress);
-    string sendString(string message);
+    size_t sendString(string message, bool mutex);
 
   private:
     struct sockaddr_in address;
@@ -33,5 +34,6 @@ class tcpClientSocket
     int port;
     string serverAddress;
     struct sockaddr_in serv_addr;
+    mutex sendMutex;
 };
 } 
