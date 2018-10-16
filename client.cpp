@@ -68,6 +68,10 @@ int main(int argc, char **argv)
         getline(std::cin, input);
         input += "\n";
         client.sendString(input, true);
+        std::string hollaBack;
+        int length;
+        tie(hollaBack, length) = client.recvString();
+        std::cout << hollaBack;
     }
         
     return 0;

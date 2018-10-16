@@ -55,3 +55,25 @@ size_t cs457::tcpClientSocket::sendString(std::string message, bool useMutex)
 
     return rval;
 }
+
+std::tuple<std::string,ssize_t> cs457::tcpClientSocket::recvString(int bufferSize, bool useMutex)
+{
+    char stringBuffer[bufferSize]; 
+    memset(stringBuffer, 0, sizeof(stringBuffer));    //change made here. Zeros out buffer.
+
+    ssize_t recvMsgSize;
+
+    if (useMutex)
+    {
+        lock_guard<mutex> lock(recieveMutex);
+        recvMsgSize = recv(socketID, stringBuffer, bufferSize, 0); 
+    }    
+    else
+    {
+        recvMsgSize = recv(socketID, stringBuffer, bufferSize, 0); 
+    }
+    
+    
+   
+    return make_tuple(string(stringBuffer),recvMsgSize);     
+};
