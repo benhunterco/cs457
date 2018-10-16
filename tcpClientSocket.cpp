@@ -1,5 +1,6 @@
 #include "tcpClientSocket.h"
 #include <iostream>
+#include <istream>
 
 cs457::tcpClientSocket::tcpClientSocket(int port, std::string serverAddress)
 {
@@ -32,7 +33,12 @@ cs457::tcpClientSocket::tcpClientSocket(int port, std::string serverAddress)
     { 
         std::cerr << "\nConnection Failed \n"; 
     } 
+}
 
-    //testsend
-    send(socketID, "fuck", 4, 0);
+std::string cs457::tcpClientSocket::sendString(std::string message)
+{
+    message += "\n";
+    send(socketID, message.c_str(), sizeof(message.c_str()), 0);
+    std::cout << "Client is sending: " << message.c_str();
+    return "sentsuccs";
 }
