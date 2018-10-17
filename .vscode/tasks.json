@@ -30,6 +30,7 @@
                 "-g",
                 "tcpClientSocket.cpp",
                 "client.cpp",
+                "-pthread",
                 "-o",
                 "client.out"
             ],
