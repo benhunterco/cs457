@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <thread>
 #include "tcpUserSocket.h"
 #include "tcpClientSocket.h"
 
@@ -15,6 +16,31 @@ int serverport = 0;
 std::string configFile = "";
 std::string testFile = "";
 std::string logFile = "";
+
+void clientSend(cs457::tcpClientSocket *client)
+{
+    std::string input = "";
+    while (input.find("EXIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
+    {
+        //Make thread for sending and one for recieving.
+        std::cout << "input your message: ";
+        std::string input;
+        getline(std::cin, input);
+        input += "\n";
+        client->sendString(input, true);
+    }
+}
+
+void clientReceive(cs457::tcpClientSocket *client)
+{
+    std::string rcvMessage;
+    while (rcvMessage.find("goodbye") == std::string::npos)
+    {
+        int length;
+        tie(rcvMessage, length) = client->recvString();
+        std::cout << "\n" << rcvMessage;
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -58,21 +84,14 @@ int main(int argc, char **argv)
     //for now don't do anything, but presumably we could call stuff later.
     std::cout << "Hostname: " << hostname << " Username: " << username << " ServerPort: " << serverport << " configfile: "
               << configFile << " TestFile: " << testFile << " LogFile: " << logFile << "\n";
-    
+
     //create the socket
     cs457::tcpClientSocket client(serverport, hostname);
-    while(true)
-    {
-        std::cout << "input your message: ";
-        std::string input;
-        getline(std::cin, input);
-        input += "\n";
-        client.sendString(input, true);
-        std::string hollaBack;
-        int length;
-        tie(hollaBack, length) = client.recvString();
-        std::cout << hollaBack;
-    }
-        
+    std::thread sendThread(clientSend, &client);
+    //clientSend(client);
+    std::thread receiveThread(clientReceive, &client);
+    sendThread.join();
+    receiveThread.join();
+
     return 0;
 }
