@@ -21,6 +21,8 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id)
     while (cont) 
     {
         tie(msg,val) = clientSocket.get()->recvString();
+        //if message is blank, continue.
+        //Might solve ^C thing.
         if (msg.substr(0,4) == "EXIT")
             cont = false; 
        

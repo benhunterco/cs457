@@ -24,6 +24,8 @@ cs457::tcpClientSocket::tcpClientSocket(int port, std::string serverAddress)
     serv_addr.sin_port = htons(tcpClientSocket::port);
 
     //Set the outbound address based on our string. Must change our c++ string into char*
+    //change to getaddrinfo from here http://man7.org/linux/man-pages/man3/getaddrinfo.3.html
+    //and here https://gist.github.com/jirihnidek/bf7a2363e480491da72301b228b35d5d
     if (inet_pton(AF_INET, tcpClientSocket::serverAddress.c_str(), &serv_addr.sin_addr) <= 0)
     {
         std::cerr << "\nInvalid address/ Address not supported \n";

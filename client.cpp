@@ -10,9 +10,9 @@
 
 //Values passed into client from command line call.
 //Not read from config file, that will be implemented later.
-std::string hostname = "";
+std::string hostname = "127.0.0.1";
 std::string username = "";
-int serverport = 0;
+int serverport = 2000;
 std::string configFile = "";
 std::string testFile = "";
 std::string logFile = "";
@@ -26,7 +26,7 @@ void clientSend(cs457::tcpClientSocket *client)
         std::cout << "input your message: ";
         std::string input;
         getline(std::cin, input);
-        input += "\n";
+        //input += "\n";
         client->sendString(input, true);
     }
 }
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         }
 
     //for now don't do anything, but presumably we could call stuff later.
-    std::cout << "Hostname: " << hostname << " Username: " << username << " ServerPort: " << serverport << " configfile: "
+    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username: " << username << " ServerPort (default 2000): " << serverport << " configfile: "
               << configFile << " TestFile: " << testFile << " LogFile: " << logFile << "\n";
 
     //create the socket
