@@ -1,3 +1,7 @@
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <iostream>
 #include <string> 
 #include <tuple> 
@@ -58,10 +62,38 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id)
     return 1; 
 }
 
+int port = 2000;
+string configFile = "chatserver.conf";
+string db = "db/";
+
 int main(int argc, char * argv[])
 {
-    cout << "Initializing Socket" << std::endl; 
-    cs457::tcpServerSocket mysocket(2000);
+     opterr = 0;
+    char c = ' ';
+    while ((c = getopt(argc, argv, "p:c:d:")) != -1)
+        switch (c)
+        {
+        case 'p':
+            port = atoi(optarg);
+            if (port == 0)
+            {
+                std::cerr << "Incorrect port number. Please enter an integer\n";
+                return 1;
+            }
+            break;
+        case 'c':
+            configFile = optarg;
+            break;
+        case 'd':
+            db = optarg;
+        case '?':
+            std::cerr << "Incorrect usage. Options are -port portnumber -c configfile -d /path/to/db \n";
+            return 1;
+        default:
+            abort();
+        }
+    cout << "Initializing Socket on port" << port << std::endl; 
+    cs457::tcpServerSocket mysocket(port);
     cout << "Binding Socket" << std::endl; 
     mysocket.bindSocket(); 
     cout << "Listening Socket" << std::endl; 

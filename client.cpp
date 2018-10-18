@@ -26,7 +26,7 @@ void clientSend(cs457::tcpClientSocket *client)
         std::cout << "input your message: ";
         std::string input;
         getline(std::cin, input);
-        //input += "\n";
+        //input += "\n"; << don't send if blank!
         client->sendString(input, true);
     }
 }
