@@ -7,6 +7,7 @@
 #include <thread>
 #include "tcpUserSocket.h"
 #include "tcpClientSocket.h"
+#include "Parsing.h"
 
 //Values passed into client from command line call.
 //Not read from config file, that will be implemented later.
@@ -23,11 +24,15 @@ void clientSend(cs457::tcpClientSocket *client)
     while (input.find("EXIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
-        std::cout << "input your message: ";
+        std::cout << "\ninput your message: ";
         std::string input;
         getline(std::cin, input);
         //input += "\n"; << don't send if blank!
-        client->sendString(input, true);
+        if (input.length() > 0)
+        {
+            //in the future, we will see whether this is a command or message??
+            client->sendString(input, true);
+        }
     }
 }
 
@@ -82,7 +87,8 @@ int main(int argc, char **argv)
         }
 
     //for now don't do anything, but presumably we could call stuff later.
-    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username: " << username << " ServerPort (default 2000): " << serverport << " configfile: "
+    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username: " << username << " ServerPort (default 2000): " << 
+                serverport << " configfile: "
               << configFile << " TestFile: " << testFile << " LogFile: " << logFile << "\n";
 
     //create the socket
