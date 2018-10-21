@@ -8,8 +8,10 @@
 #include <thread>
 #include <vector>
 #include <memory>
+#include <map>
 #include "tcpUserSocket.h"
 #include "tcpServerSocket.h"
+#include "Parsing.h"
 
 using namespace std;
 
@@ -65,7 +67,8 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
     return 1;
 }
 
-void adminCommands()
+//map<string, shared_ptr<cs457::tcpUserSocket>>& userMap = nullptr
+void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>>* uMap)
 {
     string command;
     while (command.find("STOP") == string::npos)
@@ -115,9 +118,12 @@ int main(int argc, char *argv[])
     mysocket.listenSocket();
     cout << "Waiting to Accept Socket" << std::endl;
     int id = 0;
+    //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
+    //This map, with key of nickname will keep track of connected clients
+    map<string, shared_ptr<cs457::tcpUserSocket>>* userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
     cout << "Starting administration thread here??? \n";
-    thread adminThread(adminCommands);
+    thread adminThread(adminCommands, userMap);
     while (ready)
     {
         shared_ptr<cs457::tcpUserSocket> clientSocket;
@@ -125,6 +131,9 @@ int main(int argc, char *argv[])
         tie(clientSocket, val) = mysocket.acceptSocket();
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
+        const string key = "User: " + id;
+        (*userMap)[key] = clientSocket;
+
         unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id);
         threadList.push_back(std::move(t));
 
@@ -137,6 +146,7 @@ int main(int argc, char *argv[])
         t.get()->join();
     }
     adminThread.join();
+    delete(userMap);
     cout << "Server is shutting down after one client" << endl;
     return 0;
 }

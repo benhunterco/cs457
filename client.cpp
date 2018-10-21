@@ -43,6 +43,15 @@ void clientReceive(cs457::tcpClientSocket *client)
     {
         int length;
         tie(rcvMessage, length) = client->recvString();
+
+        //Handle commands, anything that starts with /
+        if (length > 0 && rcvMessage[0] == '/'){
+            Parsing::IRC_message message(rcvMessage);
+            
+            //Respond to the ping command by sending a pong.
+            if(message.command == "PING")
+                client->sendString("PONG", true);
+        }
         std::cout << "\n" << rcvMessage;
     }
 }
