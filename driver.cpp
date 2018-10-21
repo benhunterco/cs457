@@ -75,6 +75,14 @@ void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>>* uMap)
     {
         cout << "[SERVER]>";
         getline(cin, command);
+        if(command.find("USERS") != string::npos){
+            for (auto u : *uMap)
+            {
+                //should print out the keys in uMap.
+                cout << "Key: " << u.first << endl;
+                cout << "Value: " << u.second->getSocket() << endl;
+            }
+        }
         cout << command << endl;
     }
 }
@@ -131,7 +139,7 @@ int main(int argc, char *argv[])
         tie(clientSocket, val) = mysocket.acceptSocket();
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
-        const string key = "User: " + id;
+        const string key = "User: " + to_string(id);
         (*userMap)[key] = clientSocket;
 
         unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id);
