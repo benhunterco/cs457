@@ -75,6 +75,7 @@ void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>>* uMap)
     {
         cout << "[SERVER]>";
         getline(cin, command);
+        Parsing::IRC_message message(command);
         if(command.find("USERS") != string::npos){
             for (auto u : *uMap)
             {
