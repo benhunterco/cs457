@@ -7,12 +7,13 @@
 #include <thread>
 #include "tcpUserSocket.h"
 #include "tcpClientSocket.h"
+#include "Parsing.h"
 
 //Values passed into client from command line call.
 //Not read from config file, that will be implemented later.
-std::string hostname = "";
+std::string hostname = "127.0.0.1";
 std::string username = "";
-int serverport = 0;
+int serverport = 2000;
 std::string configFile = "";
 std::string testFile = "";
 std::string logFile = "";
@@ -23,11 +24,15 @@ void clientSend(cs457::tcpClientSocket *client)
     while (input.find("EXIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
-        std::cout << "input your message: ";
+        std::cout << "\ninput your message: ";
         std::string input;
         getline(std::cin, input);
-        input += "\n";
-        client->sendString(input, true);
+        //input += "\n"; << don't send if blank!
+        if (input.length() > 0)
+        {
+            //in the future, we will see whether this is a command or message??
+            client->sendString(input, true);
+        }
     }
 }
 
@@ -38,6 +43,15 @@ void clientReceive(cs457::tcpClientSocket *client)
     {
         int length;
         tie(rcvMessage, length) = client->recvString();
+
+        //Handle commands, anything that starts with /
+        if (length > 0 && rcvMessage[0] == '/'){
+            Parsing::IRC_message message(rcvMessage);
+            
+            //Respond to the ping command by sending a pong.
+            if(message.command == "PING")
+                client->sendString("PONG", true);
+        }
         std::cout << "\n" << rcvMessage;
     }
 }
@@ -82,7 +96,8 @@ int main(int argc, char **argv)
         }
 
     //for now don't do anything, but presumably we could call stuff later.
-    std::cout << "Hostname: " << hostname << " Username: " << username << " ServerPort: " << serverport << " configfile: "
+    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username: " << username << " ServerPort (default 2000): " << 
+                serverport << " configfile: "
               << configFile << " TestFile: " << testFile << " LogFile: " << logFile << "\n";
 
     //create the socket

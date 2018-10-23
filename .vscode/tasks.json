@@ -12,6 +12,7 @@
                 "tcpUserSocket.cpp",
                 "tcpServerSocket.cpp",
                 "driver.cpp",
+                "Parsing.cpp",
                 "-pthread",
                 "-o",
                 "driver.out"
@@ -30,6 +31,7 @@
                 "-g",
                 "tcpClientSocket.cpp",
                 "client.cpp",
+                "Parsing.cpp",
                 "-pthread",
                 "-o",
                 "client.out"
