@@ -17,6 +17,10 @@ using namespace std;
 
 bool ready = true;
 
+//In the future, use this to silence or enable printing.
+bool verbose = true;
+
+//add user map parameter.
 int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
 {
 
@@ -31,7 +35,12 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
         //Might solve ^C thing.
         //Fixed!
         if (msg.empty())
+        {
+            //This may be a sign the client disconnected.
+            //Perhaps we could try a ping!
+            cout << val << endl;
             continue;
+        }
         if (msg.substr(0, 4) == "EXIT")
             cont = false;
 
@@ -64,27 +73,52 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
     clientSocket.get()->sendString("goodbye");
 
     clientSocket.get()->closeSocket();
+    //remove client from map here.
     return 1;
 }
 
-//map<string, shared_ptr<cs457::tcpUserSocket>>& userMap = nullptr
-void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>>* uMap)
+//This method runs on its own thread. Commands are concurent with message receiving. Maybe could put in a verbose flag?
+void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>> *uMap)
 {
     string command;
-    while (command.find("STOP") == string::npos)
+    bool continueAdmin = true;
+    while (continueAdmin)
     {
         cout << "[SERVER]>";
         getline(cin, command);
-        Parsing::IRC_message message(command);
-        if(command.find("USERS") != string::npos){
+        //adds returns stuff that the parser wants, not automatic with getline.
+        Parsing::IRC_message message(command + "\r\n");
+        //enum of commands?
+        if (message.command == string("USERS"))
+        {
             for (auto u : *uMap)
             {
                 //should print out the keys in uMap.
                 cout << "Key: " << u.first << endl;
-                cout << "Value: " << u.second->getSocket() << endl;
+                cout << "Socket: " << u.second->getSocket() << endl;
+                cout << "UniqueID: " << u.second->getUniqueIdentifier() << endl;
             }
         }
-        cout << command << endl;
+        else if (message.command == string("PING"))
+        {
+            if (message.params.size() > 1)
+                cout << "[SERVER]> more than one server on ping not yet supported.\n";
+
+            else if (message.params.size() < 1)
+                cout << "[SERVER]> address needed for ping\n";
+
+            else
+                cout << "[SERVER]> Sending ping to " << message.params[0] << endl;
+        }
+        else if (message.command == string("EXIT"))
+        {
+            continueAdmin = false;
+            //Kill all threads and disconect clients here!
+        }
+        else
+        {
+            cout << "[SERVER]> Did not recognize: " << command << endl;
+        }
     }
 }
 
@@ -130,7 +164,7 @@ int main(int argc, char *argv[])
     //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
-    map<string, shared_ptr<cs457::tcpUserSocket>>* userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+    map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, userMap);
     while (ready)
@@ -155,7 +189,7 @@ int main(int argc, char *argv[])
         t.get()->join();
     }
     adminThread.join();
-    delete(userMap);
+    delete (userMap);
     cout << "Server is shutting down after one client" << endl;
     return 0;
 }
