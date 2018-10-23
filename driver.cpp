@@ -31,15 +31,15 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
     while (cont)
     {
         tie(msg, val) = clientSocket.get()->recvString();
-        //if message is blank, continue.
-        //Might solve ^C thing.
-        //Fixed!
-        if (msg.empty())
+
+        //from man(recv), a return value of 0 indicates "stream socket peer has performed orderly shutdown".
+        if (val == 0)
         {
-            //This may be a sign the client disconnected.
-            //Perhaps we could try a ping!
-            cout << val << endl;
-            continue;
+            //Client has disconnected
+            //or possibly, socket was killed elsewhere!
+            cout << "Client " << id <<" Disconnected\n";
+            cont = false;
+            break;
         }
         if (msg.substr(0, 4) == "EXIT")
             cont = false;
