@@ -24,7 +24,11 @@ class user
     std::string password;
     std::string level;
     bool banned;
+    bool socketActive;
     shared_ptr<cs457::tcpUserSocket> userSocket;
+
+    void closeSocket();
+    void setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket);
 };
 } // namespace cs457
 
