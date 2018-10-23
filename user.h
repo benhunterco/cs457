@@ -22,12 +22,19 @@ class user
   public:
     std::string username;
     std::string password;
+
+    /**
+     * has the function of telling permissions.
+     * valid ones are user, channelop, sysop, admin
+     * */    
     std::string level;
     bool banned;
     bool socketActive;
     shared_ptr<cs457::tcpUserSocket> userSocket;
 
+    user(std::string uname, std::string password = "@", std::string level = "user", shared_ptr<cs457::tcpUserSocket> inputSocket = nullptr);
     void closeSocket();
+    
     void setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket);
 };
 } // namespace cs457
