@@ -12,6 +12,7 @@
 #include "tcpUserSocket.h"
 #include "tcpServerSocket.h"
 #include "Parsing.h"
+#include "user.h"
 
 using namespace std;
 
@@ -25,6 +26,11 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
 {
 
     cout << "Waiting for message from Client Thread" << id << std::endl;
+    /**
+     * here the client should send in their pass and user info. 
+     * Then we can create a user for them.
+     * We'll use the format of IRC messages for this I think. 
+     */
     string msg;
     ssize_t val;
     bool cont = true;
@@ -164,7 +170,7 @@ int main(int argc, char *argv[])
     //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
-    map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+    map<string, cs457::user> *userMap = new map<string, cs457::user>;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, userMap);
     while (ready)
@@ -174,9 +180,6 @@ int main(int argc, char *argv[])
         tie(clientSocket, val) = mysocket.acceptSocket();
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
-        const string key = "User: " + to_string(id);
-        (*userMap)[key] = clientSocket;
-
         unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id);
         threadList.push_back(std::move(t));
 
@@ -184,6 +187,7 @@ int main(int argc, char *argv[])
               // threadList.push_back(t);
     }
 
+    //somehow get users associated?.
     for (auto &t : threadList)
     {
         t.get()->join();
