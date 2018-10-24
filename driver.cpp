@@ -25,6 +25,10 @@ bool verbose = true;
 int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
 {
 
+    //first, we register the user. Could be its own method?
+    cs457::user connectedUser(clientSocket);
+    cout << "Connected user: " << connectedUser.getName();
+
     cout << "Waiting for message from Client Thread" << id << std::endl;
     /**
      * here the client should send in their pass and user info. 
@@ -170,7 +174,8 @@ int main(int argc, char *argv[])
     //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
-    map<string, cs457::user> *userMap = new map<string, cs457::user>;
+    //map<string, cs457::user> *userMap = new map<string, cs457::user>;
+    map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, userMap);
     while (ready)
