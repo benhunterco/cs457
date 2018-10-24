@@ -12,6 +12,7 @@ Hmm
 
 For the server's use.
 */
+#pragma once
 #include <string>
 #include <iostream>
 #include "tcpUserSocket.h"

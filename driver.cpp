@@ -13,6 +13,7 @@
 #include "tcpServerSocket.h"
 #include "Parsing.h"
 #include "user.h"
+#include "server.h"
 
 using namespace std;
 
@@ -22,11 +23,12 @@ bool ready = true;
 bool verbose = true;
 
 //add user map parameter.
-int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
+int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server* myServer)
 {
 
     //first, we register the user. Could be its own method?
     cs457::user connectedUser(clientSocket);
+    myServer->addUser(connectedUser);
     cout << "Connected user: " << connectedUser.getName();
 
     cout << "Waiting for message from Client Thread" << id << std::endl;
@@ -88,7 +90,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
 }
 
 //This method runs on its own thread. Commands are concurent with message receiving. Maybe could put in a verbose flag?
-void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>> *uMap)
+void adminCommands(cs457::server* myServer)
 {
     string command;
     bool continueAdmin = true;
@@ -101,12 +103,12 @@ void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>> *uMap)
         //enum of commands?
         if (message.command == string("USERS"))
         {
-            for (auto u : *uMap)
+            for (auto u : myServer->getUsers())
             {
                 //should print out the keys in uMap.
                 cout << "Key: " << u.first << endl;
-                cout << "Socket: " << u.second->getSocket() << endl;
-                cout << "UniqueID: " << u.second->getUniqueIdentifier() << endl;
+                cout << "Socket: " << u.second.getName() << endl;
+                cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
             }
         }
         else if (message.command == string("PING"))
@@ -175,9 +177,10 @@ int main(int argc, char *argv[])
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
     //map<string, cs457::user> *userMap = new map<string, cs457::user>;
-    map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+    //map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+    cs457::server myServer;
     cout << "Starting administration thread here??? \n";
-    thread adminThread(adminCommands, userMap);
+    thread adminThread(adminCommands, &myServer);
     while (ready)
     {
         shared_ptr<cs457::tcpUserSocket> clientSocket;
@@ -185,7 +188,7 @@ int main(int argc, char *argv[])
         tie(clientSocket, val) = mysocket.acceptSocket();
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
-        unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id);
+        unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id, &myServer);
         threadList.push_back(std::move(t));
 
         id++; //not the best way to go about it.
@@ -198,7 +201,7 @@ int main(int argc, char *argv[])
         t.get()->join();
     }
     adminThread.join();
-    delete (userMap);
+    //delete (userMap);
     cout << "Server is shutting down after one client" << endl;
     return 0;
 }

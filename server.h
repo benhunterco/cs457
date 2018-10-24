@@ -1,3 +1,5 @@
+#pragma once
+
 #include "user.h"
 #include <string>
 #include <map>
@@ -16,13 +18,15 @@ struct channel
     std::string name;
     std::vector<cs457::user> members;
     
-}; class server
+}; 
+class server
 {
   public:
     bool addUser(cs457::user);
     bool addChannel(cs457::user, std::string channelName);
     //std::map<std::string, cs457::user> getUserMap();
     std::vector<channel> getChannels();
+    std::map<std::string, cs457::user> getUsers();
 
   private:
     std::map<std::string, cs457::user> userMap;

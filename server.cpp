@@ -31,3 +31,7 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     newChannel.members.push_back(requestingUser); //can use first member as op???
     return true;
 }
+
+std::map<std::string, cs457::user> cs457::server::getUsers(){
+    return userMap;
+}
