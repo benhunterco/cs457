@@ -7,14 +7,15 @@ void cs457::user::closeSocket()
 {
     if (cs457::user::userSocket)
     {
-        cs457::user::userSocket->closeSocket();
-        cs457::user::socketActive = false;
+        userSocket->closeSocket();
+        socketActive = false;
     }
 }
 
 void cs457::user::setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket)
 {
-    cs457::user::userSocket = inputSocket;
+    socketActive = true;
+    userSocket = inputSocket;
 }
 
 
@@ -40,10 +41,12 @@ cs457::user::user(std::string uname, std::string pword /*= "@"*/,
 cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
 {
     userSocket = inputSocket;
+    socketActive = true;
     std::string msg; int val;
     tie(msg, val) = userSocket.get()->recvString();
     if(val > 0){
         //append the crlf thing???
+        //ohh yeah probably do this clientside!!!!TODO
         msg += "\r\n";
         Parsing::IRC_message message(msg);
         if(message.command == "NICK"){

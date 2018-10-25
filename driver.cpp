@@ -53,13 +53,23 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             cont = false;
             break;
         }
-        if (msg.substr(0, 4) == "QUIT")
+        Parsing::IRC_message message(msg);
+        if (message.command == "QUIT")
         {
             cont = false;
             clientSocket.get()->sendString("goodbye");
             clientSocket.get()->closeSocket();
-            cout<< "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+            cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
             return 1;
+        }
+        else if (message.command == "PRIVMSG")
+        {
+            cs457::user rcvUser = myServer->getUser(message.params[0]);
+            //in future, will be for loop for each user in params[0]
+            if (rcvUser.socketActive)
+            {
+                rcvUser.userSocket.get()->sendString(message.params[1]);
+            }
         }
 
         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
@@ -106,6 +116,7 @@ void adminCommands(cs457::server *myServer)
                 cout << "Key: " << u.first << endl;
                 cout << "Socket: " << u.second.getName() << endl;
                 cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
+                cout << "Connected: " << u.second.socketActive << endl;
             }
         }
         else if (message.command == string("PING"))
