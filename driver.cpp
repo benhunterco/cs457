@@ -120,7 +120,11 @@ void adminCommands(cs457::server* myServer)
                 cout << "[SERVER]> address needed for ping\n";
 
             else
+            {
                 cout << "[SERVER]> Sending ping to " << message.params[0] << endl;
+                cs457::user pingUser = myServer->getUser(message.params[0]);
+                pingUser.userSocket.get()->sendString("PING", true);
+            }
         }
         else if (message.command == string("EXIT"))
         {

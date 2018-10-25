@@ -27,6 +27,7 @@ class server
     //std::map<std::string, cs457::user> getUserMap();
     std::vector<channel> getChannels();
     std::map<std::string, cs457::user> getUsers();
+    cs457::user getUser(std::string);
 
   private:
     std::map<std::string, cs457::user> userMap;

@@ -28,11 +28,11 @@ void clientRegister(cs457::tcpClientSocket *client){
 void clientSend(cs457::tcpClientSocket *client)
 {
     std::string input = "";
-    while (input.find("EXIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
+    while (input.find("QUIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
         std::cout << "\ninput your message: ";
-        std::string input;
+        //std::string input;
         getline(std::cin, input);
         //input += "\n"; << don't send if blank!
         if (input.length() > 0)
@@ -56,14 +56,14 @@ void clientReceive(cs457::tcpClientSocket *client)
             break;
         }
         //Handle commands, anything that starts with /
-        if (length > 0 && rcvMessage[0] == '/'){
+        if (length > 0){
             Parsing::IRC_message message(rcvMessage);
             
             //Respond to the ping command by sending a pong.
             if(message.command == "PING")
                 client->sendString("PONG", true);
         }
-        std::cout << "\n" << rcvMessage;
+        std::cout << "\n" << rcvMessage<< std::endl;
     }
 }
 
