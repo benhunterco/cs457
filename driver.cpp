@@ -12,6 +12,8 @@
 #include "tcpUserSocket.h"
 #include "tcpServerSocket.h"
 #include "Parsing.h"
+#include "user.h"
+#include "server.h"
 
 using namespace std;
 
@@ -21,40 +23,50 @@ bool ready = true;
 bool verbose = true;
 
 //add user map parameter.
-int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
+int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server *myServer)
 {
 
+    //first, we register the user. Could be its own method?
+    cs457::user connectedUser(clientSocket);
+    myServer->addUser(connectedUser);
+    cout << "Connected user: " << connectedUser.getName();
+
     cout << "Waiting for message from Client Thread" << id << std::endl;
+    /**
+     * here the client should send in their pass and user info. 
+     * Then we can create a user for them.
+     * We'll use the format of IRC messages for this I think. 
+     */
     string msg;
     ssize_t val;
     bool cont = true;
     while (cont)
     {
         tie(msg, val) = clientSocket.get()->recvString();
-        //if message is blank, continue.
-        //Might solve ^C thing.
-        //Fixed!
-        if (msg.empty())
+
+        //from man(recv), a return value of 0 indicates "stream socket peer has performed orderly shutdown".
+        if (val == 0)
         {
-            //This may be a sign the client disconnected.
-            //Perhaps we could try a ping!
-            cout << val << endl;
-            continue;
-        }
-        if (msg.substr(0, 4) == "EXIT")
+            //Client has disconnected
+            //or possibly, socket was killed elsewhere!
+            cout << "Client " << id << " Disconnected\n";
             cont = false;
+            break;
+        }
+        if (msg.substr(0, 4) == "QUIT")
+        {
+            cont = false;
+            clientSocket.get()->sendString("goodbye");
+            clientSocket.get()->closeSocket();
+            cout<< "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+            return 1;
+        }
 
         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
         string s = "[SERVER REPLY] The client is sending message:" + msg + "\n";
         thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
-        //thread childT2(&cs457::tcpUserSocket::sendString,clientSocket.get(),msg,true);
-        //thread childT3(&cs457::tcpUserSocket::sendString,clientSocket.get(),"\n",true);
 
         childT1.join();
-        //childT2.join();
-        //childT3.join();
-        //clientSocket.get()->sendString(msg);
-        //clientSocket.get()->sendString("\n");
         if (msg.substr(0, 6) == "SERVER")
         {
             thread childTExit(&cs457::tcpUserSocket::sendString, clientSocket.get(), "GOODBYE EVERYONE", false);
@@ -66,19 +78,16 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id)
         }
         else
         {
-            cout << "waiting for another message" << endl;
+            cout << "[SERVER] waiting for another message" << endl;
         }
     }
 
-    clientSocket.get()->sendString("goodbye");
-
-    clientSocket.get()->closeSocket();
     //remove client from map here.
     return 1;
 }
 
 //This method runs on its own thread. Commands are concurent with message receiving. Maybe could put in a verbose flag?
-void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>> *uMap)
+void adminCommands(cs457::server *myServer)
 {
     string command;
     bool continueAdmin = true;
@@ -91,12 +100,12 @@ void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>> *uMap)
         //enum of commands?
         if (message.command == string("USERS"))
         {
-            for (auto u : *uMap)
+            for (auto u : myServer->getUsers())
             {
                 //should print out the keys in uMap.
                 cout << "Key: " << u.first << endl;
-                cout << "Socket: " << u.second->getSocket() << endl;
-                cout << "UniqueID: " << u.second->getUniqueIdentifier() << endl;
+                cout << "Socket: " << u.second.getName() << endl;
+                cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
             }
         }
         else if (message.command == string("PING"))
@@ -108,7 +117,11 @@ void adminCommands(map<string, shared_ptr<cs457::tcpUserSocket>> *uMap)
                 cout << "[SERVER]> address needed for ping\n";
 
             else
+            {
                 cout << "[SERVER]> Sending ping to " << message.params[0] << endl;
+                cs457::user pingUser = myServer->getUser(message.params[0]);
+                pingUser.userSocket.get()->sendString("PING", true);
+            }
         }
         else if (message.command == string("EXIT"))
         {
@@ -164,9 +177,11 @@ int main(int argc, char *argv[])
     //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
-    map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+    //map<string, cs457::user> *userMap = new map<string, cs457::user>;
+    //map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+    cs457::server myServer;
     cout << "Starting administration thread here??? \n";
-    thread adminThread(adminCommands, userMap);
+    thread adminThread(adminCommands, &myServer);
     while (ready)
     {
         shared_ptr<cs457::tcpUserSocket> clientSocket;
@@ -174,22 +189,20 @@ int main(int argc, char *argv[])
         tie(clientSocket, val) = mysocket.acceptSocket();
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
-        const string key = "User: " + to_string(id);
-        (*userMap)[key] = clientSocket;
-
-        unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id);
+        unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id, &myServer);
         threadList.push_back(std::move(t));
 
         id++; //not the best way to go about it.
               // threadList.push_back(t);
     }
 
+    //somehow get users associated?.
     for (auto &t : threadList)
     {
         t.get()->join();
     }
     adminThread.join();
-    delete (userMap);
+    //delete (userMap);
     cout << "Server is shutting down after one client" << endl;
     return 0;
 }

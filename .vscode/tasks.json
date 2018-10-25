@@ -13,6 +13,8 @@
                 "tcpServerSocket.cpp",
                 "driver.cpp",
                 "Parsing.cpp",
+                "user.cpp",
+                "server.cpp",
                 "-pthread",
                 "-o",
                 "driver.out"

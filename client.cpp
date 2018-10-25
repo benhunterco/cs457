@@ -12,20 +12,27 @@
 //Values passed into client from command line call.
 //Not read from config file, that will be implemented later.
 std::string hostname = "127.0.0.1";
-std::string username = "";
+std::string username = "bobby";
 int serverport = 2000;
 std::string configFile = "";
 std::string testFile = "";
 std::string logFile = "";
 
+void clientRegister(cs457::tcpClientSocket *client){
+    /**send appropriate registration details
+     */
+    std::string registration = "NICK " + username;
+    client->sendString(registration, true);
+}
+
 void clientSend(cs457::tcpClientSocket *client)
 {
     std::string input = "";
-    while (input.find("EXIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
+    while (input.find("QUIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
         std::cout << "\ninput your message: ";
-        std::string input;
+        //std::string input;
         getline(std::cin, input);
         //input += "\n"; << don't send if blank!
         if (input.length() > 0)
@@ -44,15 +51,19 @@ void clientReceive(cs457::tcpClientSocket *client)
         int length;
         tie(rcvMessage, length) = client->recvString();
 
+        if(length <=0 ){
+            std::cout << "socket close!" << std::endl;
+            break;
+        }
         //Handle commands, anything that starts with /
-        if (length > 0 && rcvMessage[0] == '/'){
+        if (length > 0){
             Parsing::IRC_message message(rcvMessage);
             
             //Respond to the ping command by sending a pong.
             if(message.command == "PING")
                 client->sendString("PONG", true);
         }
-        std::cout << "\n" << rcvMessage;
+        std::cout << "\n" << rcvMessage<< std::endl;
     }
 }
 
@@ -96,12 +107,14 @@ int main(int argc, char **argv)
         }
 
     //for now don't do anything, but presumably we could call stuff later.
-    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username: " << username << " ServerPort (default 2000): " << 
+    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username (default bobby): " << username << " ServerPort (default 2000): " << 
                 serverport << " configfile: "
               << configFile << " TestFile: " << testFile << " LogFile: " << logFile << "\n";
 
     //create the socket
     cs457::tcpClientSocket client(serverport, hostname);
+    //register the user
+    clientRegister(&client);
     std::thread sendThread(clientSend, &client);
     //clientSend(client);
     std::thread receiveThread(clientReceive, &client);

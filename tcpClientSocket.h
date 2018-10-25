@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -27,7 +29,7 @@ class tcpClientSocket
   public:
     tcpClientSocket(int port, string serverAddress);
     tuple<string,ssize_t> recvString(int bufferSize=4096,bool useMutex = true);
-    size_t sendString(string message, bool mutex);
+    size_t sendString(const string& message, bool mutex);
 
   private:
     struct sockaddr_in address;

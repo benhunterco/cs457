@@ -38,7 +38,7 @@ cs457::tcpClientSocket::tcpClientSocket(int port, std::string serverAddress)
     }
 }
 
-size_t cs457::tcpClientSocket::sendString(std::string message, bool useMutex)
+size_t cs457::tcpClientSocket::sendString(const std::string& message, bool useMutex)
 {
     //add new line from command prompt, not here.
     //message += "\n";
