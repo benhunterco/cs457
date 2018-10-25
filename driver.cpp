@@ -23,7 +23,7 @@ bool ready = true;
 bool verbose = true;
 
 //add user map parameter.
-int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server* myServer)
+int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server *myServer)
 {
 
     //first, we register the user. Could be its own method?
@@ -49,24 +49,24 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         {
             //Client has disconnected
             //or possibly, socket was killed elsewhere!
-            cout << "Client " << id <<" Disconnected\n";
+            cout << "Client " << id << " Disconnected\n";
             cont = false;
             break;
         }
-        if (msg.substr(0, 4) == "EXIT")
+        if (msg.substr(0, 4) == "QUIT")
+        {
             cont = false;
+            clientSocket.get()->sendString("goodbye");
+            clientSocket.get()->closeSocket();
+            cout<< "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+            return 1;
+        }
 
         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
         string s = "[SERVER REPLY] The client is sending message:" + msg + "\n";
         thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
-        //thread childT2(&cs457::tcpUserSocket::sendString,clientSocket.get(),msg,true);
-        //thread childT3(&cs457::tcpUserSocket::sendString,clientSocket.get(),"\n",true);
 
         childT1.join();
-        //childT2.join();
-        //childT3.join();
-        //clientSocket.get()->sendString(msg);
-        //clientSocket.get()->sendString("\n");
         if (msg.substr(0, 6) == "SERVER")
         {
             thread childTExit(&cs457::tcpUserSocket::sendString, clientSocket.get(), "GOODBYE EVERYONE", false);
@@ -78,19 +78,16 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         }
         else
         {
-            cout << "waiting for another message" << endl;
+            cout << "[SERVER] waiting for another message" << endl;
         }
     }
 
-    clientSocket.get()->sendString("goodbye");
-
-    clientSocket.get()->closeSocket();
     //remove client from map here.
     return 1;
 }
 
 //This method runs on its own thread. Commands are concurent with message receiving. Maybe could put in a verbose flag?
-void adminCommands(cs457::server* myServer)
+void adminCommands(cs457::server *myServer)
 {
     string command;
     bool continueAdmin = true;
