@@ -52,7 +52,7 @@ cs457::user& cs457::server::getUser(std::string user)
 bool cs457::server::command(std::string msg, cs457::user& connectedUser)
 {
     Parsing::IRC_message message(msg);
-std::cout << "HERe" <<endl;
+
     //Handles the quit command. Disconnects the user and marks them as such.
     if (message.command == "QUIT")
     {
@@ -77,7 +77,7 @@ std::cout << "HERe" <<endl;
             return true;
         }else{
             //IDK save message for later maybe? Send away message back?
-            std::cout << "USER NOT FOUND" << endl;
+            //std::cout << "USER NOT FOUND" << endl;
             connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage());
             return true;
         }
@@ -86,7 +86,7 @@ std::cout << "HERe" <<endl;
     //Handles the away command
     else if (message.command == "AWAY")
     {
-        std::cout<<"SETAWAY TO " + message.params[0] << endl;
+        //std::cout<<"SETAWAY TO " + message.params[0] << endl;
         connectedUser.setAwayMessage(message.params[0]);
         return true;
     }
