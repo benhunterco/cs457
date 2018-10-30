@@ -59,17 +59,22 @@ bool cs457::server::command(std::string msg, cs457::user& connectedUser)
         connectedUser.socketActive = false;
         std::cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
         return false;
-    }/*
+    }
     else if (message.command == "PRIVMSG")
     {
-        cout << "private message recieved" << endl;
-        cs457::user rcvUser = myServer->getUser(message.params[0]);
+        //std::cout << "private message recieved" << endl;
+        cs457::user& rcvUser = getUser(message.params[0]);
         //in future, will be for loop for each user in params[0]
         if (rcvUser.socketActive)
         {
             rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
+            return true;
+        }else{
+            //IDK save message for later maybe? Send away message back?
+            connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is away.\r\n");
+            return true;
         }
-    }*/
+    }
 
     return false;
 }
