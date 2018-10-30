@@ -83,7 +83,7 @@ void clientReceive(cs457::tcpClientSocket *client)
                 client->sendString("PONG", true);
         }
         std::cout << "\n"
-                  << rcvMessage;
+                  << rcvMessage << std::endl;
     }
 }
 
