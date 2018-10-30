@@ -53,16 +53,20 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             cont = false;
             break;
         }
+        //call server command 
+        //return value could be boolean, indicates whether to continue.
+        cont = myServer->command(msg, connectedUser);
         Parsing::IRC_message message(msg);
-        if (message.command == "QUIT")
+        /*if (message.command == "QUIT")
         {
             cont = false;
             clientSocket.get()->sendString("goodbye");
             clientSocket.get()->closeSocket();
             cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+            //myServer->getUser(connectedUser.getName()).socketActive = false;
             return 1;
-        }
-        else if (message.command == "PRIVMSG")
+        }*/
+        if (message.command == "PRIVMSG")
         {
             cout << "private message recieved" << endl;
             cs457::user rcvUser = myServer->getUser(message.params[0]);

@@ -39,10 +39,37 @@ std::map<std::string, cs457::user> cs457::server::getUsers()
 
 cs457::user cs457::server::getUser(std::string user)
 {
-    if (userMap.find(user) != userMap.end()){
+    if (userMap.find(user) != userMap.end())
+    {
         return userMap.at(user);
     }
-    else{
-        throw;//some sort of exception, user not found.
+    else
+    {
+        throw; //some sort of exception, user not found.
     }
+}
+
+bool cs457::server::command(std::string msg, cs457::user& connectedUser)
+{
+    Parsing::IRC_message message(msg);
+    if (message.command == "QUIT")
+    {
+        connectedUser.userSocket.get()->sendString("goodbye");
+        connectedUser.userSocket.get()->closeSocket();
+        connectedUser.socketActive = false;
+        std::cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+        return false;
+    }/*
+    else if (message.command == "PRIVMSG")
+    {
+        cout << "private message recieved" << endl;
+        cs457::user rcvUser = myServer->getUser(message.params[0]);
+        //in future, will be for loop for each user in params[0]
+        if (rcvUser.socketActive)
+        {
+            rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
+        }
+    }*/
+
+    return false;
 }
