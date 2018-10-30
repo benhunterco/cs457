@@ -18,13 +18,18 @@ std::string configFile = "";
 std::string testFile = "";
 std::string logFile = "";
 
-void clientRegister(cs457::tcpClientSocket *client){
+void clientRegister(cs457::tcpClientSocket *client)
+{
     /**send appropriate registration details
      */
     std::string registration = "NICK " + username;
     client->sendString(registration, true);
 }
 
+//Here. Append nickname to front of command.
+//so typing /time -> :bobby TIME
+//          clientside conversion
+//
 void clientSend(cs457::tcpClientSocket *client)
 {
     std::string input = "";
@@ -38,7 +43,19 @@ void clientSend(cs457::tcpClientSocket *client)
         if (input.length() > 0)
         {
             //in the future, we will see whether this is a command or message??
-            client->sendString(input, true);
+            //sends all messages in "<user>: what they typed" format.
+            //if they have sent a command, then we just pass it along.
+            //strip out the slash and preppend username:
+            if (input[0] == '/')
+            {
+                //get rid of the slash.
+                //send as an irc message
+                input.erase(0,1);
+                client->sendString(":" + username + " " +input + "\r\n", true);
+            }else{
+                //this is just a message. So send to the currently active channel.
+                //client->sendString(us)
+            }
         }
     }
 }
@@ -51,19 +68,22 @@ void clientReceive(cs457::tcpClientSocket *client)
         int length;
         tie(rcvMessage, length) = client->recvString();
 
-        if(length <=0 ){
+        if (length <= 0)
+        {
             std::cout << "socket close!" << std::endl;
             break;
         }
         //Handle commands, anything that starts with /
-        if (length > 0){
+        if (length > 0)
+        {
             Parsing::IRC_message message(rcvMessage);
-            
+
             //Respond to the ping command by sending a pong.
-            if(message.command == "PING")
+            if (message.command == "PING")
                 client->sendString("PONG", true);
         }
-        std::cout << "\n" << rcvMessage<< std::endl;
+        std::cout << "\n"
+                  << rcvMessage << std::endl;
     }
 }
 
@@ -107,8 +127,7 @@ int main(int argc, char **argv)
         }
 
     //for now don't do anything, but presumably we could call stuff later.
-    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username (default bobby): " << username << " ServerPort (default 2000): " << 
-                serverport << " configfile: "
+    std::cout << "Hostname (default 127.0.0.1): " << hostname << " Username (default bobby): " << username << " ServerPort (default 2000): " << serverport << " configfile: "
               << configFile << " TestFile: " << testFile << " LogFile: " << logFile << "\n";
 
     //create the socket
