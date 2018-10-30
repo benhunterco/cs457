@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "Parsing.h"
 /** This class builds a representation of the state of the server.
  * In the future, it will be able to load in the state from files and write out to files.
  * In the future, it will be able to to commands.
@@ -28,6 +29,10 @@ class server
     std::vector<channel> getChannels();
     std::map<std::string, cs457::user> getUsers();
     cs457::user getUser(std::string);
+    /*Parses and evaluates the command given. 
+      lets see if this is a good way of doing things
+      */
+    bool command(std::string, cs457::user&);
 
   private:
     std::map<std::string, cs457::user> userMap;
