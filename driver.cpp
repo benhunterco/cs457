@@ -27,8 +27,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
 {
 
     //first, we register the user. Could be its own method?
-    cs457::user connectedUser(clientSocket);
-    myServer->addUser(connectedUser);
+    cs457::user& connectedUser = myServer->addUserWithSocket(clientSocket);
     cout << "Connected user: " << connectedUser.getName();
 
     cout << "Waiting for message from Client Thread" << id << std::endl;
@@ -53,16 +52,20 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             cont = false;
             break;
         }
+        //call server command 
+        //return value could be boolean, indicates whether to continue.
+        cont = myServer->command(msg, connectedUser);
         Parsing::IRC_message message(msg);
-        if (message.command == "QUIT")
+        /*if (message.command == "QUIT")
         {
             cont = false;
             clientSocket.get()->sendString("goodbye");
             clientSocket.get()->closeSocket();
             cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+            //myServer->getUser(connectedUser.getName()).socketActive = false;
             return 1;
-        }
-        else if (message.command == "PRIVMSG")
+        }*//*
+        if (message.command == "PRIVMSG")
         {
             cout << "private message recieved" << endl;
             cs457::user rcvUser = myServer->getUser(message.params[0]);
@@ -72,7 +75,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
                 rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
             }
         }
-
+*/
         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
         string s = "[SERVER REPLY] The client is sending message:" + msg + "\n";
         thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
