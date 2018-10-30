@@ -27,8 +27,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
 {
 
     //first, we register the user. Could be its own method?
-    cs457::user connectedUser(clientSocket);
-    myServer->addUser(connectedUser);
+    cs457::user& connectedUser = myServer->addUserWithSocket(clientSocket);
     cout << "Connected user: " << connectedUser.getName();
 
     cout << "Waiting for message from Client Thread" << id << std::endl;

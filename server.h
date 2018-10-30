@@ -24,11 +24,12 @@ class server
 {
   public:
     bool addUser(cs457::user);
+    cs457::user& addUserWithSocket(shared_ptr<cs457::tcpUserSocket>);
     bool addChannel(cs457::user, std::string channelName);
     //std::map<std::string, cs457::user> getUserMap();
     std::vector<channel> getChannels();
     std::map<std::string, cs457::user> getUsers();
-    cs457::user getUser(std::string);
+    cs457::user& getUser(std::string);
     /*Parses and evaluates the command given. 
       lets see if this is a good way of doing things
       */

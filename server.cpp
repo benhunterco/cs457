@@ -37,7 +37,7 @@ std::map<std::string, cs457::user> cs457::server::getUsers()
     return userMap;
 }
 
-cs457::user cs457::server::getUser(std::string user)
+cs457::user& cs457::server::getUser(std::string user)
 {
     if (userMap.find(user) != userMap.end())
     {
@@ -72,4 +72,12 @@ bool cs457::server::command(std::string msg, cs457::user& connectedUser)
     }*/
 
     return false;
+}
+
+cs457::user& cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket){
+    cs457::user connectedUser(clientSocket);
+    addUser(connectedUser);
+    //trying to more explicitily get the reference to the maps copy of the user.
+    cs457::user& myref = userMap.at(connectedUser.getName());
+    return myref;
 }
