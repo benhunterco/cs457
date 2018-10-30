@@ -38,6 +38,7 @@ cs457::user::user(std::string uname, std::string pword /*= "@"*/,
     }
 }
 
+//This is the one I'm using right now for adding as the connect. 
 cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
 {
     userSocket = inputSocket;
@@ -57,12 +58,23 @@ cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
     else{
         /*Something went wrong!!!*/
     }
+    awayMessage = "I, " + username + " am not here right now.";
     
 }
 
 std::string cs457::user::getName()const
 {
     return username;
+}
+
+void cs457::user::setAwayMessage(std::string newMessage)
+{
+    awayMessage = newMessage;
+    return;
+}
+
+std::string cs457::user::getAwayMessage(){
+    return awayMessage;
 }
 
 /*

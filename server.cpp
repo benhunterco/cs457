@@ -52,6 +52,8 @@ cs457::user& cs457::server::getUser(std::string user)
 bool cs457::server::command(std::string msg, cs457::user& connectedUser)
 {
     Parsing::IRC_message message(msg);
+std::cout << "HERe" <<endl;
+    //Handles the quit command. Disconnects the user and marks them as such.
     if (message.command == "QUIT")
     {
         connectedUser.userSocket.get()->sendString("goodbye");
@@ -60,6 +62,10 @@ bool cs457::server::command(std::string msg, cs457::user& connectedUser)
         std::cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
         return false;
     }
+
+    //Handles sending a private message
+    //Will need to handle rooms in the future.
+    //Currently, sends to one single user. 
     else if (message.command == "PRIVMSG")
     {
         //std::cout << "private message recieved" << endl;
@@ -71,9 +77,18 @@ bool cs457::server::command(std::string msg, cs457::user& connectedUser)
             return true;
         }else{
             //IDK save message for later maybe? Send away message back?
-            connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is away.\r\n");
+            std::cout << "USER NOT FOUND" << endl;
+            connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage());
             return true;
         }
+    }
+
+    //Handles the away command
+    else if (message.command == "AWAY")
+    {
+        std::cout<<"SETAWAY TO " + message.params[0] << endl;
+        connectedUser.setAwayMessage(message.params[0]);
+        return true;
     }
 
     return false;

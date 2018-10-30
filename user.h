@@ -30,6 +30,8 @@ public:
   user(shared_ptr<cs457::tcpUserSocket> inputSocket);
   void closeSocket();
   void setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket);
+  void setAwayMessage(std::string);
+  std::string getAwayMessage();
   shared_ptr<cs457::tcpUserSocket> userSocket;
   std::string getName() const;
   /**
@@ -45,7 +47,11 @@ private:
      * valid ones are user, channelop, sysop, admin
      * */
   std::string level;
- 
+  /**
+   * Is set by the /away command.
+   * gets returned when hit by privmsg. Maybe something else too?
+   */
+  std::string awayMessage;
 };
 } // namespace cs457
 
