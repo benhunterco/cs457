@@ -17,6 +17,7 @@ namespace cs457
 struct channel
 {
     std::string name;
+    std::string password;
     std::vector<cs457::user> members;
     
 }; 
@@ -26,6 +27,7 @@ class server
     bool addUser(cs457::user);
     cs457::user& addUserWithSocket(shared_ptr<cs457::tcpUserSocket>);
     bool addChannel(cs457::user, std::string channelName);
+    bool addUserToChannel(cs457::user&, std::string channelName, std::string pass = "@");
     //std::map<std::string, cs457::user> getUserMap();
     std::vector<channel> getChannels();
     std::map<std::string, cs457::user> getUsers();
@@ -34,6 +36,7 @@ class server
       lets see if this is a good way of doing things
       */
     bool command(std::string, cs457::user&);
+    std::string listChannels(bool showUsers = false);
 
   private:
     std::map<std::string, cs457::user> userMap;

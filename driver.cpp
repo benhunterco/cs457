@@ -143,6 +143,10 @@ void adminCommands(cs457::server *myServer)
             continueAdmin = false;
             //Kill all threads and disconect clients here!
         }
+        else if (message.command == "CHANNELS"){
+            std::string channels = myServer->listChannels(/*showusers = */true);
+            cout << "Found channels:\n" << channels;
+        }
         else
         {
             cout << "[SERVER]> Did not recognize: " << command << endl;

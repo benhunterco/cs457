@@ -29,6 +29,8 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     cs457::channel newChannel;
     newChannel.name = channelName;
     newChannel.members.push_back(requestingUser); //can use first member as op???
+    newChannel.password = "@";
+    channels.push_back(newChannel);
     return true;
 }
 
@@ -37,7 +39,7 @@ std::map<std::string, cs457::user> cs457::server::getUsers()
     return userMap;
 }
 
-cs457::user& cs457::server::getUser(std::string user)
+cs457::user &cs457::server::getUser(std::string user)
 {
     if (userMap.find(user) != userMap.end())
     {
@@ -49,7 +51,7 @@ cs457::user& cs457::server::getUser(std::string user)
     }
 }
 
-bool cs457::server::command(std::string msg, cs457::user& connectedUser)
+bool cs457::server::command(std::string msg, cs457::user &connectedUser)
 {
     Parsing::IRC_message message(msg);
 
@@ -65,17 +67,19 @@ bool cs457::server::command(std::string msg, cs457::user& connectedUser)
 
     //Handles sending a private message
     //Will need to handle rooms in the future.
-    //Currently, sends to one single user. 
+    //Currently, sends to one single user.
     else if (message.command == "PRIVMSG")
     {
         //std::cout << "private message recieved" << endl;
-        cs457::user& rcvUser = getUser(message.params[0]);
+        cs457::user &rcvUser = getUser(message.params[0]);
         //in future, will be for loop for each user in params[0]
         if (rcvUser.socketActive)
         {
             rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
             return true;
-        }else{
+        }
+        else
+        {
             //IDK save message for later maybe? Send away message back?
             //std::cout << "USER NOT FOUND" << endl;
             connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage());
@@ -91,13 +95,66 @@ bool cs457::server::command(std::string msg, cs457::user& connectedUser)
         return true;
     }
 
+    //adds user to specified channel.
+    //Channelnames start with # I believe
+    else if (message.command == "JOIN")
+    {
+        if (!addChannel(connectedUser, message.params[0]))
+        {
+            //Add user to channel. Otherwise, user is the op.
+            addUserToChannel(connectedUser, message.params[0]);
+            return true;
+        }
+        else
+        {
+            //do nothing, or perhaps return that the user created a channel successfuly
+            return true;
+        }
+    }
+
     return false;
 }
 
-cs457::user& cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket){
+cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket)
+{
     cs457::user connectedUser(clientSocket);
     addUser(connectedUser);
     //trying to more explicitily get the reference to the maps copy of the user.
-    cs457::user& myref = userMap.at(connectedUser.getName());
+    cs457::user &myref = userMap.at(connectedUser.getName());
     return myref;
+}
+
+bool cs457::server::addUserToChannel(cs457::user &requestingUser, std::string channelName, std::string pass /*= "@"*/)
+{
+    //first find the specified channel
+    for (cs457::channel& c : channels)
+    {
+        if (c.name == channelName)
+        {
+            //check password here!!!
+            //then add user to channel.
+            c.members.push_back(requestingUser);
+            return true;
+        }
+    }
+
+    //channel not found???
+    return false;
+}
+
+std::string cs457::server::listChannels(bool showUsers /*= false*/)
+{
+    std::string list;
+    for (cs457::channel c : channels)
+    {
+        list += c.name + "\n";
+        if (showUsers)
+        {
+            for (cs457::user u : c.members)
+            {
+                list += ("\t" + u.getName() + "\n");
+            }
+        }
+    }
+    return list;
 }
