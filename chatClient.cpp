@@ -33,7 +33,8 @@ void clientRegister(cs457::tcpClientSocket *client)
 void clientSend(cs457::tcpClientSocket *client)
 {
     std::string input = "";
-    while (input.find("QUIT") == std::string::npos) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
+    bool cont = true;
+    while (cont) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
         std::cout << "\ninput your message: ";
@@ -44,6 +45,7 @@ void clientSend(cs457::tcpClientSocket *client)
             //strip out the slash and preppend username:
             if (input[0] == '/')
             {
+                //do local parsing of command, if anything needs to be updated we will.
                 //get rid of the slash.
                 //send as an irc message
                 input.erase(0,1);
