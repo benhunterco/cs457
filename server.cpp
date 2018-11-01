@@ -82,7 +82,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             //IDK save message for later maybe? Send away message back?
             //std::cout << "USER NOT FOUND" << endl;
-            connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage());
+            connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
             return true;
         }
     }

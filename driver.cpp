@@ -56,26 +56,6 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         //return value could be boolean, indicates whether to continue.
         cont = myServer->command(msg, connectedUser);
         Parsing::IRC_message message(msg);
-        /*if (message.command == "QUIT")
-        {
-            cont = false;
-            clientSocket.get()->sendString("goodbye");
-            clientSocket.get()->closeSocket();
-            cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
-            //myServer->getUser(connectedUser.getName()).socketActive = false;
-            return 1;
-        }*//*
-        if (message.command == "PRIVMSG")
-        {
-            cout << "private message recieved" << endl;
-            cs457::user rcvUser = myServer->getUser(message.params[0]);
-            //in future, will be for loop for each user in params[0]
-            if (rcvUser.socketActive)
-            {
-                rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
-            }
-        }
-*/
         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
         string s = "[SERVER REPLY] The client is sending message:" + msg + "\n";
         thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
@@ -196,8 +176,7 @@ int main(int argc, char *argv[])
     //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
-    //map<string, cs457::user> *userMap = new map<string, cs457::user>;
-    //map<string, shared_ptr<cs457::tcpUserSocket>> *userMap = new map<string, shared_ptr<cs457::tcpUserSocket>>;
+  
     cs457::server myServer;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, &myServer);
@@ -221,7 +200,6 @@ int main(int argc, char *argv[])
         t.get()->join();
     }
     adminThread.join();
-    //delete (userMap);
     cout << "Server is shutting down after one client" << endl;
     return 0;
 }

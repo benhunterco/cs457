@@ -7,9 +7,7 @@
 #include "Parsing.h"
 /** This class builds a representation of the state of the server.
  * In the future, it will be able to load in the state from files and write out to files.
- * In the future, it will be able to to commands.
  * For now, it simply keeps track of the connected users in userMap, 
- * and the channels as vectors of strings. Vect[0] is the channel name, and users are added to it.
  */
 
 namespace cs457
