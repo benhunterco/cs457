@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "tcpClientSocket.h"
 namespace cs457
 {
 class client
@@ -12,6 +13,8 @@ class client
     std::string configFile = "";
     std::string testFile = "";
     std::string logFile = "";
+    tcpClientSocket* sock;
+    void send(std::string msg);
 
   private:
 };

@@ -17,7 +17,7 @@ void clientRegister(cs457::tcpClientSocket *clientSock)
     /**send appropriate registration details
      */
     std::string registration = "NICK " + client.username + "\r\n";
-    clientSock->sendString(registration, true);
+    client.send(registration);
 }
 
 //Here. Append nickname to front of command.
@@ -125,6 +125,7 @@ int main(int argc, char **argv)
 
     //create the socket
     cs457::tcpClientSocket clientSock(client.serverport, client.hostname);
+    client.sock = &clientSock;
     //register the user
     clientRegister(&clientSock);
     std::thread sendThread(clientSend, &clientSock);
