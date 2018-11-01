@@ -9,14 +9,7 @@
 #include <arpa/inet.h>
 #include <mutex>
 
-/*
-make this some sort of usefull wrapper class.
-Ideally, you construct it and just give it a port.
-Then, you can use operator << to send stuff across the socket!! 
-It could even take objects!.
-And maybe do operator >> ??? That could be cool. 
-Anyway, I am way less scared now. 
-*/
+
 
 namespace cs457
 {

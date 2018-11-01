@@ -48,7 +48,6 @@ cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
     if(val > 0){
         //append the crlf thing???
         //ohh yeah probably do this clientside!!!!TODO
-        msg += "\r\n";
         Parsing::IRC_message message(msg);
         if(message.command == "NICK"){
             //New user registering on first connection.

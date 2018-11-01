@@ -22,7 +22,7 @@ void clientRegister(cs457::tcpClientSocket *client)
 {
     /**send appropriate registration details
      */
-    std::string registration = "NICK " + username;
+    std::string registration = "NICK " + username + "\r\n";
     client->sendString(registration, true);
 }
 
@@ -37,14 +37,10 @@ void clientSend(cs457::tcpClientSocket *client)
     {
         //Make thread for sending and one for recieving.
         std::cout << "\ninput your message: ";
-        //std::string input;
         getline(std::cin, input);
-        //input += "\n"; << don't send if blank!
+        
         if (input.length() > 0)
         {
-            //in the future, we will see whether this is a command or message??
-            //sends all messages in "<user>: what they typed" format.
-            //if they have sent a command, then we just pass it along.
             //strip out the slash and preppend username:
             if (input[0] == '/')
             {
@@ -54,6 +50,7 @@ void clientSend(cs457::tcpClientSocket *client)
                 client->sendString(":" + username + " " +input + "\r\n", true);
             }else{
                 //this is just a message. So send to the currently active channel.
+                //may just keep track of one channel somehow...
                 //client->sendString(us)
             }
         }
