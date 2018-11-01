@@ -33,6 +33,7 @@
                 "-g",
                 "tcpClientSocket.cpp",
                 "chatClient.cpp",
+                "client.cpp",
                 "Parsing.cpp",
                 "-pthread",
                 "-o",
