@@ -99,10 +99,15 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     //Channelnames start with # I believe
     else if (message.command == "JOIN")
     {
-        if (!addChannel(connectedUser, message.params[0]))
+        std::string channelName = message.params[0];
+        //add the pound if not already there.
+        if(channelName[0] != '#'){
+            channelName = "#" + channelName;
+        }
+        if (!addChannel(connectedUser, channelName))
         {
             //Add user to channel. Otherwise, user is the op.
-            addUserToChannel(connectedUser, message.params[0]);
+            addUserToChannel(connectedUser, channelName);
             return true;
         }
         else
@@ -112,7 +117,19 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         }
     }
 
-    return false;
+    //returns list of channels to the user
+    else if (message.command == "LIST"){
+        std::string response = "Here is a list of active channels:\n";
+        response += listChannels();
+        connectedUser.userSocket.get()->sendString(response);
+        return true;
+    }
+
+    else{
+        std::cout << "unrecognized command "<< message.command << endl << "[SERVER]>";
+        return true;
+    }
+    
 }
 
 cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket)
