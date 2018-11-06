@@ -63,14 +63,19 @@ int cs457::client::rcvCommand()
             //Check to see if it was sent to a channel, if not its private.
             if (message.params[0][0] != '#')
             {
+                
                 std::cout << "\n[CLIENT] Message from " << message.name << ": " << message.params[1]
                           << "\n[CLIENT] Input Message or Command: " << std::flush;
-            }
+                }
             else
             {
                 //this came from a channel.
-                std::cout << "\n[CLIENT] Message from " << message.name << " to channel " << message.params[0] << ": "
-                <<message.params[1]<< "\n[CLIENT] Input Message or Command: " << std::flush;
+                if(message.name != username)
+                {
+                    std::cout << "\n[CLIENT] Message from " << message.name << " to channel " << message.params[0] << ": "
+                              << message.params[1]<< "\n[CLIENT] Input Message or Command: " << std::flush;
+                }
+                //don't do anything with it if its to yourself 
             }
         }
         else
