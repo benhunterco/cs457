@@ -20,9 +20,30 @@ int cs457::client::command(std::string command)
     int retVal = 1;
     if (command[0] == '/')
     {
-        send(command.substr(1, command.length() - 1)); //sends string without slash.
-        if (command.substr(1, 4) == "QUIT")            //un continues.
-            retVal = 0;
+        command = command.substr(1, command.length() - 1);
+        Parsing::IRC_message msg(command + "\r\n");
+        if (msg.command == "QUIT")
+        {
+            retVal = 0;                                    //un continues.
+            send(command); //sends string without slash.
+        }
+        else if (msg.command == "HELP")
+        {
+            std::cout << "************************************************************************************\n"
+                      << "To see list of online users, type '/USERS'\n"
+                      << "To send a message to a user, type '/PRIVMSG <user> :<your message here>'\n"
+                      << "To create or join a channel, type '/JOIN <#channelName>'\n"
+                      << "To see the created channels, type '/LIST'\n"
+                      << "To send a message to a channel, type '/PRIVMSG <#channelName> :<your message here>'\n"
+                      << "A more thorough explanation can be found in the readme file.\n"
+                      << "************************************************************************************\n"
+                      << std::flush;
+        }
+        else
+        {
+            //let the server deal with it.
+            send(command);
+        }
     }
     else
     {
@@ -63,19 +84,19 @@ int cs457::client::rcvCommand()
             //Check to see if it was sent to a channel, if not its private.
             if (message.params[0][0] != '#')
             {
-                
+
                 std::cout << "\n[CLIENT] Message from " << message.name << ": " << message.params[1]
                           << "\n[CLIENT] Input Message or Command: " << std::flush;
-                }
+            }
             else
             {
                 //this came from a channel.
-                if(message.name != username)
+                if (message.name != username)
                 {
                     std::cout << "\n[CLIENT] Message from " << message.name << " to channel " << message.params[0] << ": "
-                              << message.params[1]<< "\n[CLIENT] Input Message or Command: " << std::flush;
+                              << message.params[1] << "\n[CLIENT] Input Message or Command: " << std::flush;
                 }
-                //don't do anything with it if its to yourself 
+                //don't do anything with it if its to yourself
             }
         }
         else
