@@ -13,18 +13,6 @@
 //Here is the client object. It does all the keeping track of statey stuff.
 cs457::client client;
 
-//Old registration method. 
-/*
-void clientRegister(cs457::tcpClientSocket *clientSock)
-{
-    /**send appropriate registration details
-     * 
-     * 
-     *
-    std::string registration = "NICK " + client.username + "\r\n";
-    client.send(registration);
-}*/
-
 //Here. Append nickname to front of command.
 //so typing /time -> :bobby TIME
 //          clientside conversion
@@ -48,41 +36,10 @@ void clientSend()
 
 void clientReceive(cs457::tcpClientSocket *clientSock)
 {
-    /*
-    std::string rcvMessage;
-    while (rcvMessage.find("goodbye") == std::string::npos)
-    {
-        int length;
-        tie(rcvMessage, length) = clientSock->recvString();
-
-        if (length <= 0)
-        {
-            std::cout << "socket close!" << std::endl;
-            break;
-        }
-        //Handle commands, anything that starts with /
-        if (length > 0)
-        {
-            Parsing::IRC_message message(rcvMessage);
-
-            //Respond to the ping command by sending a pong.
-            if (message.command == "PING")
-                clientSock->sendString("PONG", true);
-        }
-        std::cout << "\n"
-                  << rcvMessage << std::endl;
-    }*/
     int cont = 1;
     while (cont)
     {
         cont = client.rcvCommand();
-        /*
-        if (!cont)
-        {
-            std::cout << "[CLIENT] Connection to remote host lost. Use /CONNECT to attempt reconnect. " << std::endl;
-            std::cout << "[CLIENT] Input Message or Command: ";
-            //need to somehow reconnect and spin up new rcvthread.
-        }*/
     }
 }
 
