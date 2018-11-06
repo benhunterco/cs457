@@ -10,24 +10,29 @@
 #include "Parsing.h"
 #include "client.h"
 
-//Values passed into client from command line call.
+//Here is the client object. It does all the keeping track of statey stuff.
 cs457::client client;
+
+//Old registration method. 
+/*
 void clientRegister(cs457::tcpClientSocket *clientSock)
 {
     /**send appropriate registration details
-     */
+     * 
+     * 
+     *
     std::string registration = "NICK " + client.username + "\r\n";
     client.send(registration);
-}
+}*/
 
 //Here. Append nickname to front of command.
 //so typing /time -> :bobby TIME
 //          clientside conversion
 //
-void clientSend(cs457::tcpClientSocket *clientSock)
+void clientSend()
 {
     std::string input = "";
-    bool cont = true;
+    int cont = 1;
     while (cont) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
@@ -36,19 +41,7 @@ void clientSend(cs457::tcpClientSocket *clientSock)
         
         if (input.length() > 0)
         {
-            //strip out the slash and preppend username:
-            if (input[0] == '/')
-            {
-                //do local parsing of command, if anything needs to be updated we will.
-                //get rid of the slash.
-                //send as an irc message
-                input.erase(0,1);
-                clientSock->sendString(":" + client.username + " " +input + "\r\n", true);
-            }else{
-                //this is just a message. So send to the currently active channel.
-                //may just keep track of one channel somehow...
-                //client->sendString(us)
-            }
+            cont = client.command(input); //return is an int. For now it could be bool though
         }
     }
 }
@@ -126,9 +119,10 @@ int main(int argc, char **argv)
     //create the socket
     cs457::tcpClientSocket clientSock(client.serverport, client.hostname);
     client.sock = &clientSock;
-    //register the user
-    clientRegister(&clientSock);
-    std::thread sendThread(clientSend, &clientSock);
+    //register the user. This call is not threaded.
+    //Wait to verify that user is successfully registered.
+    size_t success = client.registerUser();
+    std::thread sendThread(clientSend);
     //clientSend(client);
     std::thread receiveThread(clientReceive, &clientSock);
     sendThread.join();

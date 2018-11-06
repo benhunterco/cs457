@@ -14,7 +14,11 @@ class client
     std::string testFile = "";
     std::string logFile = "";
     tcpClientSocket* sock;
-    void send(std::string msg);
+    size_t send(std::string msg);
+    size_t registerUser();
+    //Recieves the given input and decides what to do with it. 
+    //some classes can just be sent, some need input on this end.
+    int command(std::string command);
 
   private:
 };
