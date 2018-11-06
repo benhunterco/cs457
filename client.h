@@ -19,6 +19,9 @@ class client
     //Recieves the given input and decides what to do with it. 
     //some classes can just be sent, some need input on this end.
     int command(std::string command);
+    //if we recieve privmsg->show stuff.
+    //if we recieve ping->pong.
+    int rcvCommand(std::string command);
 
   private:
 };
