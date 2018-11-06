@@ -28,7 +28,8 @@ class server
     bool addChannel(cs457::user, std::string channelName);
     bool addUserToChannel(cs457::user&, std::string channelName, std::string pass = "@");
     //std::map<std::string, cs457::user> getUserMap();
-    std::vector<channel> getChannels();
+    std::vector<channel> getChannels();//isnt implemented?
+    cs457::channel& getChannel(std::string& channelName);
     std::map<std::string, cs457::user> getUsers();
     cs457::user& getUser(std::string);
     /*Parses and evaluates the command given. 

@@ -51,6 +51,16 @@ cs457::user &cs457::server::getUser(std::string user)
     }
 }
 
+cs457::channel &cs457::server::getChannel(std::string &channelName)
+{
+    for (cs457::channel &c : channels)
+    {
+        if (c.name == channelName)
+            return c;
+    }
+    throw "Channel " + channelName + " not found";
+}
+
 bool cs457::server::command(std::string msg, cs457::user &connectedUser)
 {
     Parsing::IRC_message message(msg);
@@ -88,6 +98,27 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
             if (recipient[0] == '#')
             {
                 //do the channel sending.
+                try
+                {
+                    //get the channel by name.
+                    cs457::channel rcvChannel = getChannel(recipient);
+                    //send to each member of the channel.
+                    for (cs457::user &rcvUser : rcvChannel.members)
+                    {
+                        if (rcvUser.socketActive)
+                        {
+                            //does pretty much the same as below. Client should check recipient to see if its a channel then?
+                            std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
+                            //sends the recipient the string, although we take out other recipients.
+                            //Might not be necessary. Maybe only need to strip channels?
+                            rcvUser.userSocket.get()->sendString(sendString);
+                        }
+                    }
+                }
+                catch (std::string e)
+                {
+                    //Channel not found. Can just ignore for now.
+                }
             }
             else
             {
@@ -96,8 +127,8 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 if (rcvUser.socketActive)
                 {
                     std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
-                    //sends the recipient the string, although we take out other recipients. 
-                    //Might not be necessary. Maybe only need to strip channels? 
+                    //sends the recipient the string, although we take out other recipients.
+                    //Might not be necessary. Maybe only need to strip channels?
                     rcvUser.userSocket.get()->sendString(sendString);
                 }
                 else

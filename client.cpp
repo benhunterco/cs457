@@ -60,13 +60,23 @@ int cs457::client::rcvCommand()
         }
         else if (message.command == "PRIVMSG")
         {
-            std::cout << "\n[CLIENT] Message from " << message.name << ": " << message.params[1] 
-            << "\n[CLIENT] Input Message or Command: "<< std::flush;;
+            //Check to see if it was sent to a channel, if not its private.
+            if (message.params[0][0] != '#')
+            {
+                std::cout << "\n[CLIENT] Message from " << message.name << ": " << message.params[1]
+                          << "\n[CLIENT] Input Message or Command: " << std::flush;
+            }
+            else
+            {
+                //this came from a channel.
+                std::cout << "\n[CLIENT] Message from " << message.name << " to channel " << message.params[0] << ": "
+                <<message.params[1]<< "\n[CLIENT] Input Message or Command: " << std::flush;
+            }
         }
         else
         {
             // just echo out what we recieved.
-            std::cout << "\n[CLIENT] Recieved: " << rcvMessage << "[CLIENT] Input Message or Command: "<< std::flush;
+            std::cout << "\n[CLIENT] Recieved: " << rcvMessage << "[CLIENT] Input Message or Command: " << std::flush;
         }
         return 1;
     }
