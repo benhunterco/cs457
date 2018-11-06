@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <istream>
 #include "Parsing.h"
 /** This class builds a representation of the state of the server.
  * In the future, it will be able to load in the state from files and write out to files.

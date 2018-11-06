@@ -71,20 +71,41 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "PRIVMSG")
     {
         //std::cout << "private message recieved" << endl;
-        cs457::user &rcvUser = getUser(message.params[0]);
-        //in future, will be for loop for each user in params[0]
-        if (rcvUser.socketActive)
+        std::string desinationStrings = message.params[0];
+        //Why on earth is there not a standard way of doing this c++??
+        //Split on the commas.
+        std::string token;
+        std::vector<std::string> destinations;
+        std::istringstream tStream(desinationStrings);
+        while (std::getline(tStream, token, ','))
         {
-            rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
-            return true;
+            destinations.push_back(token);
         }
-        else
+
+        //for each destination in the vector, either send to the channel or user.
+        for (std::string recipient : destinations)
         {
-            //IDK save message for later maybe? Send away message back?
-            //std::cout << "USER NOT FOUND" << endl;
-            connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
-            return true;
+            if (recipient[0] == '#')
+            {
+                //do the channel sending.
+            }
+            else
+            {
+                cs457::user &rcvUser = getUser(recipient);
+                //in future, will be for loop for each user in params[0]
+                if (rcvUser.socketActive)
+                {
+                    rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
+                }
+                else
+                {
+                    //IDK save message for later maybe? Send away message back?
+                    //std::cout << "USER NOT FOUND" << endl;
+                    connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
+                }
+            }
         }
+        return true;
     }
 
     //Handles the away command
@@ -101,7 +122,8 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     {
         std::string channelName = message.params[0];
         //add the pound if not already there.
-        if(channelName[0] != '#'){
+        if (channelName[0] != '#')
+        {
             channelName = "#" + channelName;
         }
         if (!addChannel(connectedUser, channelName))
@@ -118,18 +140,20 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 
     //returns list of channels to the user
-    else if (message.command == "LIST"){
+    else if (message.command == "LIST")
+    {
         std::string response = "Here is a list of active channels:\n";
         response += listChannels();
         connectedUser.userSocket.get()->sendString(response);
         return true;
     }
 
-    else{
-        std::cout << "unrecognized command "<< message.command << endl << "[SERVER]>";
+    else
+    {
+        std::cout << "unrecognized command " << message.command << endl
+                  << "[SERVER]>";
         return true;
     }
-    
 }
 
 cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket)
@@ -144,7 +168,7 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
 bool cs457::server::addUserToChannel(cs457::user &requestingUser, std::string channelName, std::string pass /*= "@"*/)
 {
     //first find the specified channel
-    for (cs457::channel& c : channels)
+    for (cs457::channel &c : channels)
     {
         if (c.name == channelName)
         {
