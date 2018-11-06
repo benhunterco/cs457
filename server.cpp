@@ -58,7 +58,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     //Handles the quit command. Disconnects the user and marks them as such.
     if (message.command == "QUIT")
     {
-        connectedUser.userSocket.get()->sendString("goodbye");
+        connectedUser.userSocket.get()->sendString("QUIT");
         connectedUser.userSocket.get()->closeSocket();
         connectedUser.socketActive = false;
         std::cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
