@@ -58,6 +58,11 @@ int cs457::client::rcvCommand()
             std::cout << "[CLIENT] Quiting..." << std::endl;
             return 0;
         }
+        else if (message.command == "PRIVMSG")
+        {
+            std::cout << "\n[CLIENT] Message from " << message.name << ": " << message.params[1] 
+            << "\n[CLIENT] Input Message or Command: "<< std::flush;;
+        }
         else
         {
             // just echo out what we recieved.

@@ -95,7 +95,10 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 //in future, will be for loop for each user in params[0]
                 if (rcvUser.socketActive)
                 {
-                    rcvUser.userSocket.get()->sendString(message.params[1] + "\r\n");
+                    std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
+                    //sends the recipient the string, although we take out other recipients. 
+                    //Might not be necessary. Maybe only need to strip channels? 
+                    rcvUser.userSocket.get()->sendString(sendString);
                 }
                 else
                 {
