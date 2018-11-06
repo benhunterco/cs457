@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 #include "tcpClientSocket.h"
+#include "Parsing.h"
 namespace cs457
 {
 class client
@@ -21,7 +23,7 @@ class client
     int command(std::string command);
     //if we recieve privmsg->show stuff.
     //if we recieve ping->pong.
-    int rcvCommand(std::string command);
+    int rcvCommand();
 
   private:
 };

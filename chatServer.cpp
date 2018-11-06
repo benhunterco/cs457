@@ -21,16 +21,16 @@ bool ready = true;
 
 //In the future, use this to silence or enable printing.
 bool verbose = true;
-
+bool debug = false;
 //add user map parameter.
 int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server *myServer)
 {
 
     //first, we register the user. Could be its own method?
-    cs457::user& connectedUser = myServer->addUserWithSocket(clientSocket);
-    cout << "Connected user: " << connectedUser.getName();
+    cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket);
+    cout << "[SERVER] Connected user: " << connectedUser.getName() << std::endl;
 
-    cout << "Waiting for message from Client Thread" << id << std::endl;
+    cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
     /**
      * here the client should send in their pass and user info. 
      * Then we can create a user for them.
@@ -48,19 +48,21 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         {
             //Client has disconnected
             //or possibly, socket was killed elsewhere!
-            cout << "Client " << id << " Disconnected\n";
+            cout << "[SERVER] Client " << id << " Disconnected\n";
             cont = false;
             break;
         }
-        //call server command 
+        //call server command
         //return value could be boolean, indicates whether to continue.
         cont = myServer->command(msg, connectedUser);
-        Parsing::IRC_message message(msg);
-        cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
-        string s = "[SERVER REPLY] The client is sending message:" + msg + "\n";
-        thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
-
-        childT1.join();
+        if (debug)
+        {
+            cout << "[DEBUG] The client is sending message " << msg << " -- With value return = " << val << endl;
+            string s = "[DEBUG] The client is sending message:" + msg + "\n";
+            thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
+            childT1.join();
+        }
+        //not really something I need or use. 
         if (msg.substr(0, 6) == "SERVER")
         {
             thread childTExit(&cs457::tcpUserSocket::sendString, clientSocket.get(), "GOODBYE EVERYONE", false);
@@ -72,7 +74,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         }
         else
         {
-            cout << "[SERVER] waiting for another message" << endl;
+            cout << "[SERVER] waiting for another message \n[SERVER]>" << std::flush;
         }
     }
 
@@ -123,9 +125,11 @@ void adminCommands(cs457::server *myServer)
             continueAdmin = false;
             //Kill all threads and disconect clients here!
         }
-        else if (message.command == "CHANNELS"){
-            std::string channels = myServer->listChannels(/*showusers = */true);
-            cout << "Found channels:\n" << channels;
+        else if (message.command == "CHANNELS")
+        {
+            std::string channels = myServer->listChannels(/*showusers = */ true);
+            cout << "Found channels:\n"
+                 << channels;
         }
         else
         {
@@ -176,7 +180,7 @@ int main(int argc, char *argv[])
     //this vector will keep track of threads for our listening.
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
-  
+
     cs457::server myServer;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, &myServer);

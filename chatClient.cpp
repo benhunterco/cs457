@@ -36,7 +36,7 @@ void clientSend()
     while (cont) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
-        std::cout << "\ninput your message: ";
+        std::cout << "[CLIENT] Input Message or Command: ";
         getline(std::cin, input);
         
         if (input.length() > 0)
@@ -48,6 +48,7 @@ void clientSend()
 
 void clientReceive(cs457::tcpClientSocket *clientSock)
 {
+    /*
     std::string rcvMessage;
     while (rcvMessage.find("goodbye") == std::string::npos)
     {
@@ -70,6 +71,18 @@ void clientReceive(cs457::tcpClientSocket *clientSock)
         }
         std::cout << "\n"
                   << rcvMessage << std::endl;
+    }*/
+    int cont = 1;
+    while (cont)
+    {
+        cont = client.rcvCommand();
+        /*
+        if (!cont)
+        {
+            std::cout << "[CLIENT] Connection to remote host lost. Use /CONNECT to attempt reconnect. " << std::endl;
+            std::cout << "[CLIENT] Input Message or Command: ";
+            //need to somehow reconnect and spin up new rcvthread.
+        }*/
     }
 }
 
