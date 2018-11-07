@@ -34,6 +34,7 @@ public:
   std::string getAwayMessage();
   shared_ptr<cs457::tcpUserSocket> userSocket;
   std::string getName() const;
+  void setName(std::string);
   void setLevel(std::string level);
   std::string getLevel();
   /**

@@ -16,6 +16,17 @@ bool cs457::server::addUser(cs457::user newUser)
     return false;
 }
 
+bool cs457::server::removeUser(cs457::user toRemove)
+{
+    if(userExists(toRemove.getName()))
+    {
+        userMap.erase(toRemove.getName());
+        return true;
+    }
+    else
+        return false;
+}
+
 bool cs457::server::addChannel(cs457::user requestingUser, std::string channelName)
 {
     for (cs457::channel c : channels)
@@ -78,7 +89,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 
     //Handles the quit command. Disconnects the user and marks them as such.
-    if (message.command == "QUIT")
+    else if (message.command == "QUIT")
     {
         connectedUser.userSocket.get()->sendString("QUIT");
         connectedUser.userSocket.get()->closeSocket();
@@ -323,6 +334,28 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         else
         {
             connectedUser.userSocket.get()->sendString("Wrong password or username! \r\n");
+        }
+        return 2;
+    }
+
+    //lets the user change their name if it isn't someone elses
+    else if (message.command == "NICK")
+    {
+        //check to see if someones used this name.
+        if(!userExists(message.params[0]))
+        {
+            //get old user out of map.
+            std::string oldName = connectedUser.getName();
+            cs457::user newUser = getUser(oldName);
+            removeUser(oldName);
+            newUser.setName(message.params[0]);
+            addUser(newUser);
+        }
+        else 
+        {
+            //send back a nick command, which will change the clients name back.
+            connectedUser.userSocket.get()->sendString("NICK " + connectedUser.getName()
+             +" :" + message.params[0] + " is taken!\r\n");
         }
         return 2;
     }

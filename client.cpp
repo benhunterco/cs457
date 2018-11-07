@@ -39,6 +39,16 @@ int cs457::client::command(std::string command)
                       << "************************************************************************************\n"
                       << std::flush;
         }
+        else if (msg.command == "NICK")
+        {
+            if(msg.params.size() < 1)
+                std::cout << "[CLIENT] <userName> is required for /NICK. \n";
+            else 
+            {
+                username = msg.params[0];
+                send(command);
+            }
+        }
         else if (msg.command == "KICK")
         {
             if(msg.params.size() < 2){
@@ -93,6 +103,12 @@ int cs457::client::rcvCommand()
             //Do not continue
             std::cout << "[CLIENT] Quiting..." << std::endl;
             return 0;
+        }
+
+        else if (message.command == "NICK")
+        {
+            username = message.params[0];
+            std::cout << "\n[CLIENT] " << message.params[1] << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
         else if (message.command == "PRIVMSG")
         {

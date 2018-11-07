@@ -68,6 +68,11 @@ std::string cs457::user::getName()const
     return username;
 }
 
+void cs457::user::setName(std::string name)
+{
+    username = name;
+}
+
 void cs457::user::setAwayMessage(std::string newMessage)
 {
     awayMessage = newMessage;
