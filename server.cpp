@@ -325,10 +325,20 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
 cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket)
 {
     cs457::user connectedUser(clientSocket);
-    addUser(connectedUser);
+    if (!userExists(connectedUser.getName()))
+    {
+        addUser(connectedUser);
+        cs457::user &myref = userMap.at(connectedUser.getName());
+        return myref;
+    }
+    else
+    {
+        cs457::user& returnedUser = getUser(connectedUser.getName());
+        returnedUser.setSocket(clientSocket);
+        returnedUser.socketActive = true;
+        return returnedUser;
+    }
     //trying to more explicitily get the reference to the maps copy of the user.
-    cs457::user &myref = userMap.at(connectedUser.getName());
-    return myref;
 }
 
 bool cs457::server::addUserToChannel(cs457::user &requestingUser, std::string channelName, std::string pass /*= "@"*/)

@@ -34,7 +34,7 @@ void clientSend()
     }
 }
 
-void clientReceive(cs457::tcpClientSocket *clientSock)
+void clientReceive()
 {
     int cont = 1;
     while (cont)
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     size_t success = client.registerUser();
     std::thread sendThread(clientSend);
     //clientSend(client);
-    std::thread receiveThread(clientReceive, &clientSock);
+    std::thread receiveThread(clientReceive);
     sendThread.join();
     receiveThread.join();
 
