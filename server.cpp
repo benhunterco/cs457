@@ -18,7 +18,7 @@ bool cs457::server::addUser(cs457::user newUser)
 
 bool cs457::server::removeUser(cs457::user toRemove)
 {
-    if(userExists(toRemove.getName()))
+    if (userExists(toRemove.getName()))
     {
         userMap.erase(toRemove.getName());
         return true;
@@ -83,7 +83,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             //write out info to files here.
             //graceful template exists. leave this for now.
-            abort();//probably the gnarliest way of doing it.
+            abort(); //probably the gnarliest way of doing it.
         }
         return 0;
     }
@@ -98,6 +98,30 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 1;
     }
 
+    //allows user to exit from space seperated list of channels.
+    else if (message.command == "PART")
+    {
+        for (std::string channelName : message.params)
+        {
+            try
+            {
+                channel &chan = getChannel(channelName);
+                for (int i = 0; i < chan.members.size(); i++)
+                {
+                    if (chan.members[i].getName() == connectedUser.getName())
+                    {
+                        chan.members.erase(chan.members.begin() + i); //I guess I should know how iterators work.
+                        return 2;
+                    }
+                }
+            }
+            catch (std::string error)
+            {
+                //do something?
+            }
+        }
+        return 2;
+    }
     //Handles recieving and sending messages.
     //For both users and channels.
     //Easily the biggest command that the server needs to handle.
@@ -156,7 +180,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //Might not be necessary. Maybe only need to strip channels?
                     rcvUser.userSocket.get()->sendString(sendString);
                 }
-                else 
+                else
                 {
                     //IDK save message for later maybe? Send away message back?
                     //std::cout << "USER NOT FOUND" << endl;
@@ -343,7 +367,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "NICK")
     {
         //check to see if someones used this name.
-        if(!userExists(message.params[0]))
+        if (!userExists(message.params[0]))
         {
             //get old user out of map.
             std::string oldName = connectedUser.getName();
@@ -352,11 +376,10 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             newUser.setName(message.params[0]);
             addUser(newUser);
         }
-        else 
+        else
         {
             //send back a nick command, which will change the clients name back.
-            connectedUser.userSocket.get()->sendString("NICK " + connectedUser.getName()
-             +" :" + message.params[0] + " is taken!\r\n");
+            connectedUser.userSocket.get()->sendString("NICK " + connectedUser.getName() + " :" + message.params[0] + " is taken!\r\n");
         }
         return 2;
     }
@@ -367,18 +390,19 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         for (std::string mode : message.params)
         {
             //switch on the first char, which should be one of the modes
-            switch(mode[0]){
-                case 'i':
-                    connectedUser.i = !connectedUser.i; //just toggles the boolean.
-                    break;
-                case 's':
-                    connectedUser.s = !connectedUser.s; //just toggles the boolean.
-                    break;
-                case 'w':
-                    connectedUser.w = !connectedUser.w; //just toggles the boolean.
-                    break;
-                default:
-                    connectedUser.userSocket.get()->sendString("Unrecognized mode attribute: " + mode +".\r\n");
+            switch (mode[0])
+            {
+            case 'i':
+                connectedUser.i = !connectedUser.i; //just toggles the boolean.
+                break;
+            case 's':
+                connectedUser.s = !connectedUser.s; //just toggles the boolean.
+                break;
+            case 'w':
+                connectedUser.w = !connectedUser.w; //just toggles the boolean.
+                break;
+            default:
+                connectedUser.userSocket.get()->sendString("Unrecognized mode attribute: " + mode + ".\r\n");
             }
         }
         return 2;
@@ -467,7 +491,7 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
     }
     else
     {
-        cs457::user& returnedUser = getUser(connectedUser.getName());
+        cs457::user &returnedUser = getUser(connectedUser.getName());
         returnedUser.setSocket(clientSocket);
         returnedUser.socketActive = true;
         return returnedUser;

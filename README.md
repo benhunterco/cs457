@@ -35,3 +35,12 @@ Instead, three modes can be set: i, s and w.
 *w sets whether to recieve wallops.
 
 A user can toggle each mode by sending "/mode [i|s|w]". 
+
+## Silence
+usage:
+/SILENCE <user> ... <user>
+Blocks messages from the users in the list. 
+
+## Part
+/PART <channelName> ... <channelName>
+Leaves the space sperated list of channels.
