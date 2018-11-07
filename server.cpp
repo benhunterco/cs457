@@ -143,6 +143,70 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         return true;
     }
 
+    //Same as privmsg without any returns.
+    else if (message.command == "NOTICE")
+    {
+        //std::cout << "private message recieved" << endl;
+        std::string desinationStrings = message.params[0];
+        //Why on earth is there not a standard way of doing this c++??
+        //Split on the commas.
+        std::string token;
+        std::vector<std::string> destinations;
+        std::istringstream tStream(desinationStrings);
+        while (std::getline(tStream, token, ','))
+        {
+            destinations.push_back(token);
+        }
+
+        //for each destination in the vector, either send to the channel or user.
+        for (std::string recipient : destinations)
+        {
+            if (recipient[0] == '#')
+            {
+                //do the channel sending.
+                try
+                {
+                    //get the channel by name.
+                    cs457::channel rcvChannel = getChannel(recipient);
+                    //send to each member of the channel.
+                    for (cs457::user &rcvUser : rcvChannel.members)
+                    {
+                        if (rcvUser.socketActive)
+                        {
+                            //does pretty much the same as below. Client should check recipient to see if its a channel then?
+                            std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
+                            //sends the recipient the string, although we take out other recipients.
+                            //Might not be necessary. Maybe only need to strip channels?
+                            rcvUser.userSocket.get()->sendString(sendString);
+                        }
+                    }
+                }
+                catch (std::string e)
+                {
+                    //Channel not found. Can just ignore for now.
+                }
+            }
+            else
+            {
+                //CHECK TO SEE IF USER EXISTS!!!
+                cs457::user &rcvUser = getUser(recipient);
+                //in future, will be for loop for each user in params[0]
+                if (rcvUser.socketActive)
+                {
+                    std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
+                    //sends the recipient the string, although we take out other recipients.
+                    //Might not be necessary. Maybe only need to strip channels?
+                    rcvUser.userSocket.get()->sendString(sendString);
+                }
+                else
+                {
+                    //do nothing cause its notice.
+                }
+            }
+        }
+        return true;
+    }
+
     //Handles the away command
     else if (message.command == "AWAY")
     {
