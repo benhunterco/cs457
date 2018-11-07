@@ -61,9 +61,21 @@ cs457::channel &cs457::server::getChannel(std::string &channelName)
     throw "Channel " + channelName + " not found";
 }
 
-bool cs457::server::command(std::string msg, cs457::user &connectedUser)
+int cs457::server::command(std::string msg, cs457::user &connectedUser)
 {
     Parsing::IRC_message message(msg);
+
+    //go commit die
+    if (message.command == "DIE")
+    {
+        if (connectedUser.getLevel() == "sysop")
+        {
+            //write out info to files here.
+            //graceful template exists. leave this for now.
+            abort();//probably the gnarliest way of doing it.
+        }
+        return 0;
+    }
 
     //Handles the quit command. Disconnects the user and marks them as such.
     if (message.command == "QUIT")
@@ -72,7 +84,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         connectedUser.userSocket.get()->closeSocket();
         connectedUser.socketActive = false;
         std::cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
-        return false;
+        return 1;
     }
 
     //Handles recieving and sending messages.
@@ -140,7 +152,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 }
             }
         }
-        return true;
+        return 2;
     }
 
     //Same as privmsg without any returns.
@@ -204,7 +216,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 }
             }
         }
-        return true;
+        return 2;
     }
 
     //Handles the away command
@@ -212,7 +224,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     {
         //std::cout<<"SETAWAY TO " + message.params[0] << endl;
         connectedUser.setAwayMessage(message.params[0]);
-        return true;
+        return 2;
     }
 
     //adds user to specified channel.
@@ -229,12 +241,12 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             //Add user to channel. Otherwise, user is the op.
             addUserToChannel(connectedUser, channelName);
-            return true;
+            return 2;
         }
         else
         {
             //do nothing, or perhaps return that the user created a channel successfuly
-            return true;
+            return 2;
         }
     }
 
@@ -244,7 +256,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         std::string response = "Here is a list of active channels:\n";
         response += listChannels() + "\r\n";
         connectedUser.userSocket.get()->sendString(response);
-        return true;
+        return 2;
     }
 
     //Returns info of the server. How the heck would you get compilation of server?
@@ -255,7 +267,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         std::string response = "Server info: \n\t*Uptime: " + std::to_string(rounded) +
                                " seconds.\n\t*Compilation: recently\r\n";
         connectedUser.userSocket.get()->sendString(response);
-        return true;
+        return 2;
     }
 
     //Sends an invite to the requested user. Really its just a message.
@@ -275,7 +287,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
         }
-        return true;
+        return 2;
     }
 
     //checks to see if user is online.
@@ -312,7 +324,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             connectedUser.userSocket.get()->sendString("Wrong password or username! \r\n");
         }
-        return true;
+        return 2;
     }
     //Kicks the user if the requester is a channel operator or above.
     //Channelop is lowest. We don't really need to grant this, creator is channelop
@@ -337,7 +349,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                             cs457::user &victim = getUser(message.params[1]);
                             //forward the kicking command. Kick from any remaining local representation and let the user know.
                             victim.userSocket.get()->sendString(msg);
-                            return true;
+                            return 2;
                         }
                     }
                     //Could not find user in channel. Might not need to let user know.
@@ -346,16 +358,16 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 {
                     //insufficient permissions, let them know that one.
                     connectedUser.userSocket.get()->sendString("You do not have permission to kick in this channel!\r\n");
-                    return true;
+                    return 2;
                 }
             }
             catch (std::string error)
             {
                 connectedUser.userSocket.get()->sendString(error + "\r\n");
-                return true;
+                return 2;
             }
         }
-        return true;
+        return 2;
     }
 
     //disconnects the user by closing they're socket. Could be implemented with the client, but this might be simpler.
@@ -370,20 +382,20 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 victim.userSocket.get()->sendString("You have been killed!\r\n");
                 //victim.closeSocket();
                 std::cout << victim.closeSocket();
-                return true;
+                return 2;
             }
         }
         else
         {
             connectedUser.userSocket.get()->sendString("You do not have license to kill!\r\n");
         }
-        return true;
+        return 2;
     }
     else
     {
         std::cout << "unrecognized command " << message.command << endl
                   << "[SERVER]>";
-        return true;
+        return 2;
     }
 }
 

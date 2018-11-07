@@ -36,7 +36,7 @@ class server
     /*Parses and evaluates the command given. 
       lets see if this is a good way of doing things
       */
-    bool command(std::string, cs457::user&);
+    int command(std::string, cs457::user&);
     std::string listChannels(bool showUsers = false);
     time_t startTime;
     bool userExists(std::string);

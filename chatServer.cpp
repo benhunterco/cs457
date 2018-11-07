@@ -38,7 +38,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
      */
     string msg;
     ssize_t val;
-    bool cont = true;
+    bool cont = true; //two means go, 1 means leave, 0 means die.
     while (cont)
     {
         tie(msg, val) = clientSocket.get()->recvString();
@@ -54,7 +54,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         }
         //call server command
         //return value could be boolean, indicates whether to continue.
-        cont = myServer->command(msg, connectedUser);
+        int ret = myServer->command(msg, connectedUser);
         if (debug)
         {
             cout << "[DEBUG] The client is sending message " << msg << " -- With value return = " << val << endl;
@@ -62,20 +62,26 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
             childT1.join();
         }
-        //not really something I need or use. 
-        if (msg.substr(0, 6) == "SERVER")
-        {
-            thread childTExit(&cs457::tcpUserSocket::sendString, clientSocket.get(), "GOODBYE EVERYONE", false);
-            thread childTExit2(&cs457::tcpUserSocket::sendString, clientSocket.get(), "\n", false);
-            ready = false;
-            cont = false;
-            childTExit.join();
-            childTExit2.join();
-        }
         else
         {
             cout << "[SERVER] waiting for another message \n[SERVER]>" << std::flush;
         }
+       
+        //deterimine whether we should continue.
+        switch (ret)
+        {
+            case 0:
+                cont = false;
+                ready = false;
+                break;
+            case 1:
+                cont = false;
+                break;
+            case 2: 
+                cont = true;
+        }
+        
+
     }
 
     //remove client from map here.
@@ -87,7 +93,7 @@ void adminCommands(cs457::server *myServer)
 {
     string command;
     bool continueAdmin = true;
-    while (continueAdmin)
+    while (continueAdmin && ready)
     {
         cout << "[SERVER]>";
         getline(cin, command);
