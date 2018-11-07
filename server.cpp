@@ -128,7 +128,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //send to each member of the channel.
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive)
+                        if (rcvUser.socketActive && !rcvUser.i)
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
@@ -148,14 +148,15 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 //CHECK TO SEE IF USER EXISTS!!!
                 cs457::user &rcvUser = getUser(recipient);
                 //in future, will be for loop for each user in params[0]
-                if (rcvUser.socketActive)
+                //check to see if they're online and visible
+                if (rcvUser.socketActive && !rcvUser.i)
                 {
                     std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
                     //sends the recipient the string, although we take out other recipients.
                     //Might not be necessary. Maybe only need to strip channels?
                     rcvUser.userSocket.get()->sendString(sendString);
                 }
-                else
+                else 
                 {
                     //IDK save message for later maybe? Send away message back?
                     //std::cout << "USER NOT FOUND" << endl;
@@ -194,7 +195,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //send to each member of the channel.
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive)
+                        if (rcvUser.socketActive && rcvUser.s)
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
@@ -214,7 +215,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 //CHECK TO SEE IF USER EXISTS!!!
                 cs457::user &rcvUser = getUser(recipient);
                 //in future, will be for loop for each user in params[0]
-                if (rcvUser.socketActive)
+                if (rcvUser.socketActive && rcvUser.s)
                 {
                     std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
                     //sends the recipient the string, although we take out other recipients.
@@ -356,6 +357,29 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             //send back a nick command, which will change the clients name back.
             connectedUser.userSocket.get()->sendString("NICK " + connectedUser.getName()
              +" :" + message.params[0] + " is taken!\r\n");
+        }
+        return 2;
+    }
+
+    //allows the user to change their mode
+    else if (message.command == "MODE")
+    {
+        for (std::string mode : message.params)
+        {
+            //switch on the first char, which should be one of the modes
+            switch(mode[0]){
+                case 'i':
+                    connectedUser.i = !connectedUser.i; //just toggles the boolean.
+                    break;
+                case 's':
+                    connectedUser.s = !connectedUser.s; //just toggles the boolean.
+                    break;
+                case 'w':
+                    connectedUser.w = !connectedUser.w; //just toggles the boolean.
+                    break;
+                default:
+                    connectedUser.userSocket.get()->sendString("Unrecognized mode attribute: " + mode +".\r\n");
+            }
         }
         return 2;
     }

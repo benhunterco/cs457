@@ -41,6 +41,11 @@ public:
    * This method allows the user on the server to recieve.
    * Make a threaded call to it. 
    */
+  //modes section
+  bool i = false; //whether to not recieve privmsg.
+  bool s = true;  //recieves notice command
+  bool w = false; //recieves wallops
+  //note. Operator flag is not added, because that is treated through the oper command only.
 
 private:
   std::string username;
