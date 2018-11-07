@@ -77,8 +77,7 @@ int cs457::client::rcvCommand()
     //if the socket is closed, rerurn 0.
     if (length <= 0)
     {
-        std::cout << "\n[CLIENT] Connection to remote host lost. Use /CONNECT to attempt reconnect. \n";
-        std::cout << "[CLIENT] Input Message or Command: " << std::flush;
+        std::cout << "\n[CLIENT] Connection to remote host lost. Press Enter to continue." << std::endl;
         return 0;
     }
     else

@@ -13,6 +13,8 @@
 //Here is the client object. It does all the keeping track of statey stuff.
 cs457::client client;
 
+//bool that lets send an recieve communicate and close out each other.
+bool sendAndRecieveLockOut = true;
 //Here. Append nickname to front of command.
 //so typing /time -> :bobby TIME
 //          clientside conversion
@@ -21,26 +23,31 @@ void clientSend()
 {
     std::string input = "";
     int cont = 1;
-    while (cont) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
+    while (cont && sendAndRecieveLockOut) //See documentation for correct quiting command, Checks if quit is in the message. Add len=4?
     {
         //Make thread for sending and one for recieving.
         std::cout << "[CLIENT] Input Message or Command: ";
         getline(std::cin, input);
 
-        if (input.length() > 0)
+        if (input.length() > 0 && sendAndRecieveLockOut)
         {
             cont = client.command(input); //return is an int. For now it could be bool though
         }
     }
+    // std::cout << "OUT of send\n";
+    sendAndRecieveLockOut = false;
 }
 
 void clientReceive()
 {
     int cont = 1;
-    while (cont)
+    while (cont && sendAndRecieveLockOut)
     {
         cont = client.rcvCommand();
     }
+    //std::cout << "OUT of rcv\n";
+    sendAndRecieveLockOut = false;
+
 }
 
 int main(int argc, char **argv)
@@ -111,6 +118,7 @@ int main(int argc, char **argv)
                 //register the user. This call is not threaded.
                 //Wait to verify that user is successfully registered.
                 size_t success = client.registerUser();
+                sendAndRecieveLockOut = true;
                 std::thread sendThread(clientSend);
                 //clientSend(client);
                 std::thread receiveThread(clientReceive);
