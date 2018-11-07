@@ -3,13 +3,15 @@
 #include <string>
 #include <iostream>
 
-void cs457::user::closeSocket()
+int cs457::user::closeSocket()
 {
+    int retint = -100;
     if (cs457::user::userSocket)
     {
-        userSocket->closeSocket();
+        retint = userSocket->closeSocket();
         socketActive = false;
     }
+    return retint;
 }
 
 void cs457::user::setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket)

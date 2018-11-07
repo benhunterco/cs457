@@ -244,7 +244,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 promoted.setLevel("sysop");
             }
         }
-        else 
+        else
         {
             connectedUser.userSocket.get()->sendString("Wrong password or username! \r\n");
         }
@@ -290,6 +290,27 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 connectedUser.userSocket.get()->sendString(error + "\r\n");
                 return true;
             }
+        }
+        return true;
+    }
+
+    //disconnects the user by closing they're socket. Could be implemented with the client, but this might be simpler.
+    //kill only takes one parameter. Some users are allowed to do it.
+    else if (message.command == "KILL")
+    {
+        if (connectedUser.getLevel() == "sysop")
+        {
+            if (userOnline(message.params[0]))
+            {
+                cs457::user &victim = getUser(message.params[0]);
+                victim.userSocket.get()->sendString("You have been killed!\r\n");
+                //std::cout << victim.closeSocket();
+                return false;
+            }
+        }
+        else
+        {
+            connectedUser.userSocket.get()->sendString("You do not have license to kill!\r\n");
         }
         return true;
     }

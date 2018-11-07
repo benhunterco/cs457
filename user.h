@@ -28,7 +28,7 @@ public:
   user(std::string uname, std::string password = "@", std::string level = "user",
        shared_ptr<cs457::tcpUserSocket> inputSocket = nullptr);
   user(shared_ptr<cs457::tcpUserSocket> inputSocket);
-  void closeSocket();
+  int closeSocket();
   void setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket);
   void setAwayMessage(std::string);
   std::string getAwayMessage();
