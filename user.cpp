@@ -76,6 +76,16 @@ std::string cs457::user::getAwayMessage(){
     return awayMessage;
 }
 
+void cs457::user::setLevel(std::string newLevel)
+{
+    level = newLevel;
+}
+  
+std::string cs457::user::getLevel()
+{
+    return level;
+}
+
 /*
 std::ostream& operator<<(std::ostream& os, const cs457::user us)
 {

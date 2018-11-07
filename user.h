@@ -34,6 +34,8 @@ public:
   std::string getAwayMessage();
   shared_ptr<cs457::tcpUserSocket> userSocket;
   std::string getName() const;
+  void setLevel(std::string level);
+  std::string getLevel();
   /**
    * This method allows the user on the server to recieve.
    * Make a threaded call to it. 
@@ -46,7 +48,7 @@ private:
      * has the function of telling permissions.
      * valid ones are user, channelop, sysop, admin
      * */
-  std::string level;
+  std::string level = "user";
   /**
    * Is set by the /away command.
    * gets returned when hit by privmsg. Maybe something else too?

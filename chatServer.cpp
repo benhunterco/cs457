@@ -103,6 +103,7 @@ void adminCommands(cs457::server *myServer)
                 cout << "Socket: " << u.second.getName() << endl;
                 cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
                 cout << "Connected: " << u.second.socketActive << endl;
+                cout << "Level: " << u.second.getLevel() << endl;
             }
         }
         else if (message.command == string("PING"))

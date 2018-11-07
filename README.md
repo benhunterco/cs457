@@ -20,3 +20,9 @@ MESSAGE FROM user/#channel:
     "Hello there!"
 ***************************
 [client]
+
+## Levels
+I implement three out of the four levels directly, and the fourth indirectly. user, sysop and admim are implemented, but
+channelop is implemented in a roundabout way. The first person to create a channel is the op by nature of them being the first member. 
+This means I don't have to have a special indicator for their status, I just check to see their index in the vector. 
+The others are strings in the user class. 

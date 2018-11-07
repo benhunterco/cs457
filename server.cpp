@@ -232,6 +232,24 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         return true;
     }
 
+    //sets the user to a sysop
+    else if (message.command == "OPER")
+    {
+        //password = notagoodpassword
+        if (message.params[1] == "notagoodpassword")
+        {
+            if (userExists(message.params[0]))
+            {
+                cs457::user &promoted = getUser(message.params[0]);
+                promoted.setLevel("sysop");
+            }
+        }
+        else 
+        {
+            connectedUser.userSocket.get()->sendString("Wrong password or username! \r\n");
+        }
+        return true;
+    }
     //Kicks the user if the requester is a channel operator or above.
     //Channelop is lowest. We don't really need to grant this, creator is channelop
     else if (message.command == "KICK")
