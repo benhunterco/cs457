@@ -199,7 +199,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     {
         std::string recipient = message.params[0];
         cs457::user &rcvUser = getUser(recipient);
-        
+
         if (rcvUser.socketActive)
         {
             std::string sendString = ":" + message.name + " INVITE " + recipient + " :" + message.params[1] + "\r\n";
@@ -210,6 +210,24 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         else
         {
             connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
+        }
+        return true;
+    }
+
+    //checks to see if user is online.
+    else if (message.command == "ISON")
+    {
+        if (userOnline(message.params[0]))
+        {
+            connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is online.\r\n");
+        }
+        else if (userExists(message.params[0]))//check if we've seen him.
+        {
+            connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is offline.\r\n");
+        }
+        else 
+        {
+            connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", has never been online.\r\n");
         }
         return true;
     }
@@ -263,4 +281,23 @@ std::string cs457::server::listChannels(bool showUsers /*= false*/)
         }
     }
     return list;
+}
+
+bool cs457::server::userExists(std::string userName)
+{
+    if (userMap.count(userName))
+        return true;
+    else
+        return false;
+}
+
+bool cs457::server::userOnline(std::string userName)
+{
+    if (userExists(userName))
+    {
+        cs457::user &user = getUser(userName);
+        return user.socketActive;
+    }
+    else
+        return false;
 }

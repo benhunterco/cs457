@@ -39,6 +39,8 @@ class server
     bool command(std::string, cs457::user&);
     std::string listChannels(bool showUsers = false);
     time_t startTime;
+    bool userExists(std::string);
+    bool userOnline(std::string);
 
   private:
     std::map<std::string, cs457::user> userMap;
