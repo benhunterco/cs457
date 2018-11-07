@@ -44,7 +44,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         tie(msg, val) = clientSocket.get()->recvString();
 
         //from man(recv), a return value of 0 indicates "stream socket peer has performed orderly shutdown".
-        if (val == 0)
+        if (val <= 0)
         {
             //Client has disconnected
             //or possibly, socket was killed elsewhere!

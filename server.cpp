@@ -304,8 +304,9 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
             {
                 cs457::user &victim = getUser(message.params[0]);
                 victim.userSocket.get()->sendString("You have been killed!\r\n");
-                //std::cout << victim.closeSocket();
-                return false;
+                //victim.closeSocket();
+                std::cout << victim.closeSocket();
+                return true;
             }
         }
         else
