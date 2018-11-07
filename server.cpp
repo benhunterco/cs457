@@ -76,8 +76,8 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 
     //Handles recieving and sending messages.
-    //For both users and channels. 
-    //Easily the biggest command that the server needs to handle. 
+    //For both users and channels.
+    //Easily the biggest command that the server needs to handle.
     else if (message.command == "PRIVMSG")
     {
         //std::cout << "private message recieved" << endl;
@@ -187,10 +187,30 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "INFO")
     {
         double seconds = difftime(time(NULL), startTime);
-        int rounded = (int) seconds;
-        std::string response = "Server info: \n\t*Uptime: "+ std::to_string(rounded)+
-            " seconds.\n\t*Compilation: recently\r\n";
+        int rounded = (int)seconds;
+        std::string response = "Server info: \n\t*Uptime: " + std::to_string(rounded) +
+                               " seconds.\n\t*Compilation: recently\r\n";
         connectedUser.userSocket.get()->sendString(response);
+        return true;
+    }
+
+    //Sends an invite to the requested user. Really its just a message.
+    else if (message.command == "INVITE")
+    {
+        std::string recipient = message.params[0];
+        cs457::user &rcvUser = getUser(recipient);
+        
+        if (rcvUser.socketActive)
+        {
+            std::string sendString = ":" + message.name + " INVITE " + recipient + " :" + message.params[1] + "\r\n";
+            //sends the recipient the string, although we take out other recipients.
+            //Might not be necessary. Maybe only need to strip channels?
+            rcvUser.userSocket.get()->sendString(sendString);
+        }
+        else
+        {
+            connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
+        }
         return true;
     }
     else

@@ -99,6 +99,10 @@ int cs457::client::rcvCommand()
                 //don't do anything with it if its to yourself
             }
         }
+        else if (message.command == "INVITE")
+        {
+            std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."<<std::endl;
+        }
         else
         {
             // just echo out what we recieved.
