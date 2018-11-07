@@ -262,7 +262,8 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
                 cs457::channel &chan = getChannel(message.params[0]);
 
                 //check to see if requester is channelop. This requires him being first in the list.
-                if (chan.members[0].getName() == message.name)
+                //he could also be a sysop. Haven't really done admin yet.
+                if (chan.members[0].getName() == message.name || connectedUser.getLevel() == "sysop")
                 {
                     for (int i = 0; i < chan.members.size(); i++)
                     {
