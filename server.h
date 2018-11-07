@@ -6,6 +6,7 @@
 #include <vector>
 #include <istream>
 #include "Parsing.h"
+#include <time.h>
 /** This class builds a representation of the state of the server.
  * In the future, it will be able to load in the state from files and write out to files.
  * For now, it simply keeps track of the connected users in userMap, 
@@ -37,6 +38,7 @@ class server
       */
     bool command(std::string, cs457::user&);
     std::string listChannels(bool showUsers = false);
+    time_t startTime;
 
   private:
     std::map<std::string, cs457::user> userMap;

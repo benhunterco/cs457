@@ -144,6 +144,10 @@ string db = "db/";
 
 int main(int argc, char *argv[])
 {
+    //create the server object and get its start time. 
+    cs457::server myServer;
+    time(&myServer.startTime);
+
     opterr = 0;
     char c = ' ';
     while ((c = getopt(argc, argv, "p:c:d:")) != -1)
@@ -181,7 +185,6 @@ int main(int argc, char *argv[])
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
 
-    cs457::server myServer;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, &myServer);
     while (ready)

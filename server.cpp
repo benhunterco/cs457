@@ -75,9 +75,9 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         return false;
     }
 
-    //Handles sending a private message
-    //Will need to handle rooms in the future.
-    //Currently, sends to one single user.
+    //Handles recieving and sending messages.
+    //For both users and channels. 
+    //Easily the biggest command that the server needs to handle. 
     else if (message.command == "PRIVMSG")
     {
         //std::cout << "private message recieved" << endl;
@@ -122,6 +122,7 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
             }
             else
             {
+                //CHECK TO SEE IF USER EXISTS!!!
                 cs457::user &rcvUser = getUser(recipient);
                 //in future, will be for loop for each user in params[0]
                 if (rcvUser.socketActive)
@@ -177,11 +178,21 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "LIST")
     {
         std::string response = "Here is a list of active channels:\n";
-        response += listChannels();
+        response += listChannels() + "\r\n";
         connectedUser.userSocket.get()->sendString(response);
         return true;
     }
 
+    //Returns info of the server. How the heck would you get compilation of server?
+    else if (message.command == "INFO")
+    {
+        double seconds = difftime(time(NULL), startTime);
+        int rounded = (int) seconds;
+        std::string response = "Server info: \n\t*Uptime: "+ std::to_string(rounded)+
+            " seconds.\n\t*Compilation: recently\r\n";
+        connectedUser.userSocket.get()->sendString(response);
+        return true;
+    }
     else
     {
         std::cout << "unrecognized command " << message.command << endl
