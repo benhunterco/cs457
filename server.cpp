@@ -221,13 +221,56 @@ bool cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is online.\r\n");
         }
-        else if (userExists(message.params[0]))//check if we've seen him.
+        else if (userExists(message.params[0])) //check if we've seen him.
         {
             connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is offline.\r\n");
         }
-        else 
+        else
         {
             connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", has never been online.\r\n");
+        }
+        return true;
+    }
+
+    //Kicks the user if the requester is a channel operator or above.
+    //Channelop is lowest. We don't really need to grant this, creator is channelop
+    else if (message.command == "KICK")
+    {
+        if (userExists(message.params[1]))
+        {
+            //get the channel that requires kicking.
+            try
+            {
+                cs457::channel &chan = getChannel(message.params[0]);
+
+                //check to see if requester is channelop. This requires him being first in the list.
+                if (chan.members[0].getName() == message.name)
+                {
+                    for (int i = 0; i < chan.members.size(); i++)
+                    {
+                        if (chan.members[i].getName() == message.params[1])
+                        {
+                            chan.members.erase(chan.members.begin() + i); //I guess I should know how iterators work.
+                            cs457::user &victim = getUser(message.params[1]);
+                            //forward the kicking command. Kick from any remaining local representation and let the user know.
+                            victim.userSocket.get()->sendString(msg);
+                            return true;
+                        }
+                    }
+                    //Could not find user in channel. Might not need to let user know.
+                }
+                else
+                {
+                    //insufficient permissions, let them know that one.
+                    connectedUser.userSocket.get()->sendString("You do not have permission to kick in this channel!\r\n");
+                    return true;
+                }
+            }
+            catch (std::string error)
+            {
+                connectedUser.userSocket.get()->sendString(error + "\r\n");
+                return true;
+            }
         }
         return true;
     }

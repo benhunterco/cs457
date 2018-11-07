@@ -39,6 +39,14 @@ int cs457::client::command(std::string command)
                       << "************************************************************************************\n"
                       << std::flush;
         }
+        else if (msg.command == "KICK")
+        {
+            if(msg.params.size() < 2){
+                std::cout << "[CLIENT] <channelName> <userName> is required for /KICK. \n";
+            }
+            else
+                send(command);
+        }
         else
         {
             //let the server deal with it.
@@ -102,6 +110,17 @@ int cs457::client::rcvCommand()
         else if (message.command == "INVITE")
         {
             std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."<<std::endl;
+        }
+        else if (message.command == "KICK")
+        {
+            std::cout << "\n[CLIENT] "<< message.name << " has kicked you from channel: " << message.params[0]<< ".";
+            if(message.params.size() > 2){
+                std::cout << " Reason: "+ message.params[2] << std::endl;
+            }
+            else{
+                std::cout << " No reason given." << std::endl;
+            }
+            std::cout<< "\n[CLIENT] Input Message or Command: " << std::flush;
         }
         else
         {
