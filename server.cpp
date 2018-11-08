@@ -853,7 +853,7 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
         cs457::user &myref = userMap.at(connectedUser.getName());
         return myref;
     }
-    else
+    else if(!userOnline(connectedUser.getName()))
     {
         //already seen, so have to check password.
         cs457::user &returnedUser = getUser(connectedUser.getName());
@@ -870,6 +870,14 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
             (*cont) = false;
             return returnedUser;
         }
+    }
+    else 
+    {
+        cs457::user &returnedUser = getUser(connectedUser.getName());
+        connectedUser.userSocket.get()->sendString("This nickname is taken. Please try another.\r\n");
+        connectedUser.closeSocket();
+        (*cont) = false;
+        return returnedUser;
     }
     //trying to more explicitily get the reference to the maps copy of the user.
 }

@@ -34,7 +34,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
     }
     else{
-        cout << "\n[SERVER] Failed password from: " << connectedUser.getName() << std::endl;
+        cout << "\n[SERVER] Failed password or conflict from: " << connectedUser.getName() << std::endl;
     }
     /**
      * here the client should send in their pass and user info. 
