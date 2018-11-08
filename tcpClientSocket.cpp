@@ -43,7 +43,8 @@ size_t cs457::tcpClientSocket::sendString(const std::string& message, bool useMu
     //add new line from command prompt, not here.
     //message += "\n";
     size_t rval;
-    std::cout << "\n[DEBUG] Client is sending: " << message.c_str()<<std::endl;
+    if(debug)
+        std::cout << "\n[DEBUG] Client is sending: " << message.c_str()<<std::endl;
     const char* cstring = message.c_str();
     if (useMutex)
     {

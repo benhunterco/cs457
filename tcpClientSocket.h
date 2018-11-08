@@ -23,6 +23,7 @@ class tcpClientSocket
     tcpClientSocket(int port, string serverAddress);
     tuple<string,ssize_t> recvString(int bufferSize=4096,bool useMutex = true);
     size_t sendString(const string& message, bool mutex);
+    bool debug = false;
 
   private:
     struct sockaddr_in address;

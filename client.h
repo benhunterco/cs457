@@ -26,6 +26,9 @@ class client
     //if we recieve ping->pong.
     int rcvCommand();
 
+    //whether to print out debug statements
+    bool debug = false;
+
   private:
 };
 } // namespace cs457

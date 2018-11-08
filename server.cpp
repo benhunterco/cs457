@@ -112,7 +112,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         connectedUser.userSocket.get()->sendString("QUIT");
         connectedUser.userSocket.get()->closeSocket();
         connectedUser.socketActive = false;
-        std::cout << "[SERVER] Client " << connectedUser.getName() << " has disconnected" << endl;
+        std::cout << "\n[SERVER] Client " << connectedUser.getName() << " has disconnected";
         return 1;
     }
 
