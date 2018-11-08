@@ -666,7 +666,11 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                         if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
-                            std::string sendString = ":" + message.name + " KNOCK " + recipient + " :" + message.params[1] + "\r\n";
+                            std::string sendString = ":" + message.name + " KNOCK " + recipient;
+                            if(message.params.size() > 1)
+                                sendString += " :" + message.params[1] + "\r\n";
+                            else 
+                                sendString += "\r\n";
                             //sends the recipient the string, although we take out other recipients.
                             //Might not be necessary. Maybe only need to strip channels?
                             rcvUser.userSocket.get()->sendString(sendString);
