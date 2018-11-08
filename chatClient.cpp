@@ -15,6 +15,9 @@ cs457::client client;
 
 //bool that lets send an recieve communicate and close out each other.
 bool sendAndRecieveLockOut = true;
+
+//bool that silences or allows debug commands.
+bool debug = false;
 //Here. Append nickname to front of command.
 //so typing /time -> :bobby TIME
 //          clientside conversion

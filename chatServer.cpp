@@ -30,11 +30,17 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
     //first, we register the user. Could be its own method?
     cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket, &cont);
     if(cont){
-        cout << "[SERVER] Connected user: " << connectedUser.getName() << std::endl;
-        cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
+        if(verbose){
+            cout << "\n[SERVER] Connected user: " << connectedUser.getName() << std::endl;
+            cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
+            cout << "[SERVER]>" <<std::flush;
+        }
     }
     else{
-        cout << "\n[SERVER] Failed password or conflict from: " << connectedUser.getName() << std::endl;
+        if(verbose){
+            cout << "\n[SERVER] Failed password or conflict from: " << connectedUser.getName() << 
+            "\n[SERVER]>"<<std::flush;
+        }
     }
     /**
      * here the client should send in their pass and user info. 
@@ -52,7 +58,8 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         {
             //Client has disconnected
             //or possibly, socket was killed elsewhere!
-            cout << "[SERVER] Client " << id << " Disconnected\n";
+            if(verbose)
+                cout << "\n[SERVER] Client " << id << " Disconnected\n[SERVER]>"<<std::flush;
             cont = false;
             break;
         }
@@ -68,7 +75,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         }
         else
         {
-            cout << "[SERVER] waiting for another message \n[SERVER]>" << std::flush;
+            cout << "\n[SERVER] waiting for another message \n[SERVER]>" << std::flush;
         }
        
         //deterimine whether we should continue.
@@ -160,7 +167,8 @@ void adminCommands(cs457::server *myServer)
         }
         else
         {
-            cout << "[SERVER]> Did not recognize: " << command << endl;
+            if(command.length() > 0)
+                cout << "[SERVER]> Did not recognize: " << command << endl;
         }
     }
 }
@@ -200,6 +208,7 @@ int main(int argc, char *argv[])
             abort();
         }
 
+    cout <<"***************Starting Server***************\n";
     cout << "Initializing Socket on port " << port << std::endl;
     cs457::tcpServerSocket mysocket(port);
     cout << "Binding Socket" << std::endl;
@@ -212,15 +221,17 @@ int main(int argc, char *argv[])
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
 
-    cout << "Starting administration thread here??? \n";
+    cout <<"***************Started Server****************\n";
     thread adminThread(adminCommands, &myServer);
     while (ready)
     {
         shared_ptr<cs457::tcpUserSocket> clientSocket;
         int val;
         tie(clientSocket, val) = mysocket.acceptSocket();
-        cout << "value for accept is " << val << std::endl;
-        cout << "Socket Accepted" << std::endl;
+        if(verbose)
+        {
+            cout << "\n[SERVER] Value for accepted socket is " << val << "\n[SERVER]" <<std::flush;
+        }
         unique_ptr<thread> t = make_unique<thread>(cclient, clientSocket, id, &myServer);
         threadList.push_back(std::move(t));
 
