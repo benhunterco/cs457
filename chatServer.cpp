@@ -34,7 +34,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
     }
     else{
-        cout << "\n[SERVER] Failed password from: " << connectedUser.getName() << std::endl;
+        cout << "\n[SERVER] Failed password or conflict from: " << connectedUser.getName() << std::endl;
     }
     /**
      * here the client should send in their pass and user info. 
@@ -135,6 +135,22 @@ void adminCommands(cs457::server *myServer)
         {
             continueAdmin = false;
             //Kill all threads and disconect clients here!
+            exit(0);
+        }
+        else if (message.command == "KILL")
+        {
+            if (myServer->userOnline(message.params[0]))
+            {
+                cs457::user &victim = myServer->getUser(message.params[0]);
+                victim.userSocket.get()->sendString(":SERVER KILL\r\n");
+                victim.closeSocket();
+                //std::cout << victim.closeSocket();
+            }
+            else
+            {
+                std::cout << "Killed user: " << message.params[0];
+                std::cout << "\n[SERVER]>" <<std::flush;
+            }
         }
         else if (message.command == "CHANNELS")
         {
