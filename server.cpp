@@ -40,11 +40,19 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     cs457::channel newChannel;
     newChannel.name = channelName;
     newChannel.members.push_back(requestingUser); //can use first member as op???
+    newChannel.userStatusMap[requestingUser.getName()].o = true;
     newChannel.password = "@";
     channels.push_back(newChannel);
     return true;
 }
 
+bool plusorminus(char pom)
+{
+    if (pom == '+')
+        return true;
+    else
+        return false;
+}
 std::map<std::string, cs457::user> cs457::server::getUsers()
 {
     return userMap;
@@ -150,15 +158,18 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //get the channel by name.
                     cs457::channel rcvChannel = getChannel(recipient);
                     //send to each member of the channel.
-                    for (cs457::user &rcvUser : rcvChannel.members)
+                    if (!rcvChannel.n || rcvChannel.userStatusMap.count(connectedUser.getName()) > 0)
                     {
-                        if (rcvUser.socketActive && !rcvUser.i)
+                        for (cs457::user &rcvUser : rcvChannel.members)
                         {
-                            //does pretty much the same as below. Client should check recipient to see if its a channel then?
-                            std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
-                            //sends the recipient the string, although we take out other recipients.
-                            //Might not be necessary. Maybe only need to strip channels?
-                            rcvUser.userSocket.get()->sendString(sendString);
+                            if (rcvUser.socketActive && !rcvUser.i)
+                            {
+                                //does pretty much the same as below. Client should check recipient to see if its a channel then?
+                                std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
+                                //sends the recipient the string, although we take out other recipients.
+                                //Might not be necessary. Maybe only need to strip channels?
+                                rcvUser.userSocket.get()->sendString(sendString);
+                            }
                         }
                     }
                 }
@@ -261,7 +272,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         //Look through all users and send to w's and sysops.
         for (auto u : getUsers())
         {
-            if((u.second.w || u.second.getLevel() == "sysop") && u.second.socketActive)
+            if ((u.second.w || u.second.getLevel() == "sysop") && u.second.socketActive)
             {
                 u.second.userSocket.get()->sendString(":" + connectedUser.getName() + " WALLOPS :" + message.params[0] + "\r\n");
             }
@@ -289,8 +300,16 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         }
         if (!addChannel(connectedUser, channelName))
         {
+            bool succ;
+            if (message.params.size() > 1)
+                succ = addUserToChannel(connectedUser, channelName, message.params[1]);
             //Add user to channel. Otherwise, user is the op.
-            addUserToChannel(connectedUser, channelName);
+            else
+                succ = addUserToChannel(connectedUser, channelName);
+            if (!succ)
+            {
+                connectedUser.userSocket.get()->sendString(":" + connectedUser.getName() + " JOIN :Failed to join channel. It may require an invite, a password, or you may be banned.\r\n");
+            }
             return 2;
         }
         else
@@ -337,6 +356,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
         }
+        channel &chan = getChannel(message.params[1]);
+        chan.userStatusMap[recipient].i = true; //set the user to invited.
         return 2;
     }
 
@@ -401,22 +422,82 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     //allows the user to change their mode
     else if (message.command == "MODE")
     {
-        for (std::string mode : message.params)
+        if (message.params[0][0] != '#')
         {
-            //switch on the first char, which should be one of the modes
-            switch (mode[0])
+            for (int i = 1; i < message.params.size(); i++)
             {
-            case 'i':
-                connectedUser.i = !connectedUser.i; //just toggles the boolean.
-                break;
-            case 's':
-                connectedUser.s = !connectedUser.s; //just toggles the boolean.
-                break;
-            case 'w':
-                connectedUser.w = !connectedUser.w; //just toggles the boolean.
-                break;
-            default:
-                connectedUser.userSocket.get()->sendString("Unrecognized mode attribute: " + mode + ".\r\n");
+                std::string mode = message.params[i];
+                //switch on the first char, which should be one of the modes
+                switch (mode[0])
+                {
+                case 'i':
+                    connectedUser.i = !connectedUser.i; //just toggles the boolean.
+                    break;
+                case 's':
+                    connectedUser.s = !connectedUser.s; //just toggles the boolean.
+                    break;
+                case 'w':
+                    connectedUser.w = !connectedUser.w; //just toggles the boolean.
+                    break;
+                default:
+                    connectedUser.userSocket.get()->sendString("Unrecognized mode attribute: " + mode + ".\r\n");
+                }
+            }
+        }
+        else
+        {
+            channel &chan = getChannel(message.params[0]);
+            for (int i = 1; i < message.params.size(); i++)
+            {
+                std::string mode = message.params[i];
+                //means that the first user
+                if (chan.userStatusMap[connectedUser.getName()].o)
+                {
+                    if (mode[1] == 'o')
+                    {
+                        //add mode o to next guy.
+                        std::string user = message.params[i + 1];
+                        chan.userStatusMap[user].o = plusorminus(mode[0]);
+                        i++; //skip next one, obv not a command.
+                    }
+                    else if (mode[1] == 'p') //checks to see if this guy is an op.
+                        chan.p = plusorminus(mode[0]);
+
+                    else if (mode[1] == 's')
+                        chan.s = plusorminus(mode[0]);
+
+                    else if (mode[1] == 'i')
+                        chan.i = plusorminus(mode[0]);
+
+                    else if (mode[1] == 't')
+                        chan.t = plusorminus(mode[0]);
+
+                    else if (mode[1] == 'n')
+                        chan.n = plusorminus(mode[0]);
+
+                    else if (mode[1] == 'b')
+                    {
+                        std::string user = message.params[i + 1];
+                        chan.userStatusMap[user].b = plusorminus(mode[0]);
+                        chan.b = true;
+                        i++; //skip next one, obv not a command.
+                    }
+
+                    else if (mode[1] == 'l')
+                    {
+                        std::string lim = message.params[i + 1];
+                        chan.limit = stoi(lim);
+                        chan.l = true;
+                        i++; //skip next one, obv not a command.
+                    }
+
+                    else if (mode[1] == 'k')
+                    {
+                        std::string key = message.params[i + 1];
+                        chan.password = key;
+                        i++; //skip next one, obv not a command.
+                    }
+                }
             }
         }
         return 2;
@@ -525,7 +606,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             //set the topic.
             channel &chan = getChannel(message.params[0]);
-            chan.topic = message.params[1];
+            if (!chan.t || chan.userStatusMap[connectedUser.getName()].o)
+                chan.topic = message.params[1];
             return 2;
         }
         else
@@ -723,8 +805,16 @@ bool cs457::server::addUserToChannel(cs457::user &requestingUser, std::string ch
         {
             //check password here!!!
             //then add user to channel.
-            c.members.push_back(requestingUser);
-            return true;
+            if ((!c.i || (c.i && c.userStatusMap[requestingUser.getName()].i)) &&
+                (!c.p || (c.p && c.password == pass)) &&
+                ((c.members.size() < c.limit) || !c.l) &&
+                (!c.b || !c.userStatusMap[requestingUser.getName()].b))
+            {
+                c.members.push_back(requestingUser);
+                return true;
+            }
+            else
+                return false;
         }
     }
 
@@ -737,15 +827,25 @@ std::string cs457::server::listChannels(bool showUsers /*= false*/)
     std::string list;
     for (cs457::channel c : channels)
     {
-        if (c.topic.length() > 0)
-            list += c.name + ": " + c.topic + "\n";
-        else
-            list += c.name + "\n";
-        if (showUsers)
+        if (!c.s)
         {
-            for (cs457::user u : c.members)
+            std::string attributes = "[";
+            if (c.i)
+                attributes += "i";
+            if (c.p)
+                attributes += "p";
+            attributes += "] ";
+            list += attributes;
+            if (c.topic.length() > 0)
+                list += c.name + ": " + c.topic + "\n";
+            else
+                list += c.name + "\n";
+            if (showUsers)
             {
-                list += ("\t" + u.getName() + "\n");
+                for (cs457::user u : c.members)
+                {
+                    list += ("\t" + u.getName() + "\n");
+                }
             }
         }
     }

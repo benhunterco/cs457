@@ -14,12 +14,34 @@
 
 namespace cs457
 {
+
+//These are the flags a channel member has.
+//So if some of them are true, then he has those.
+//others will be set later. 
+struct channelModes
+{
+    bool o; //whether the member is an op
+    bool i; //whether the member is invited.
+    bool b; //whether the member is banned.
+};
+
 struct channel
 {
     std::string name;
     std::string password;
     std::vector<cs457::user> members;
     std::string topic;
+    std::map<std::string, channelModes> userStatusMap;
+    int limit;
+    //channel portion of modes
+    bool p = false; //whether the channel is private. Here means it is static.
+    bool s = false; //whether channel is secret, won't show in list.
+    bool i = false; //requires invite, but can bee seen. Unless s is set.
+    bool t = false; //topic settable only by some.
+    bool n = false; //deny non member messages
+    bool l = false; //user limit.
+    bool b = false; //whether there is a ban mask. 
+    bool k = false; //sets the password, basically whether there is a pass.
     
 }; 
 class server
