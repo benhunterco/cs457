@@ -16,6 +16,16 @@ bool cs457::server::addUser(cs457::user newUser)
     return false;
 }
 
+bool cs457::server::userInChannel(cs457::user& check, cs457::channel& chan)
+{
+    for(cs457::user& member : chan.members)
+    {
+        if(member.getName() == check.getName())
+            return true;
+    }
+    return false;
+}
+
 bool cs457::server::removeUser(cs457::user toRemove)
 {
     if (userExists(toRemove.getName()))
@@ -156,22 +166,21 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 try
                 {
                     //get the channel by name.
-                    cs457::channel rcvChannel = getChannel(recipient);
+                    cs457::channel& rcvChannel = getChannel(recipient);
                     //send to each member of the channel.
-                    if (!rcvChannel.n || rcvChannel.userStatusMap.count(connectedUser.getName()) > 0)
+                
+                    for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        for (cs457::user &rcvUser : rcvChannel.members)
+                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
                         {
-                            if (rcvUser.socketActive && !rcvUser.i)
-                            {
-                                //does pretty much the same as below. Client should check recipient to see if its a channel then?
-                                std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
-                                //sends the recipient the string, although we take out other recipients.
-                                //Might not be necessary. Maybe only need to strip channels?
-                                rcvUser.userSocket.get()->sendString(sendString);
-                            }
+                            //does pretty much the same as below. Client should check recipient to see if its a channel then?
+                            std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
+                            //sends the recipient the string, although we take out other recipients.
+                            //Might not be necessary. Maybe only need to strip channels?
+                            rcvUser.userSocket.get()->sendString(sendString);
                         }
                     }
+                
                 }
                 catch (std::string e)
                 {
@@ -834,6 +843,8 @@ std::string cs457::server::listChannels(bool showUsers /*= false*/)
                 attributes += "i";
             if (c.p)
                 attributes += "p";
+            if (c.n)
+                attributes += "n";
             attributes += "] ";
             list += attributes;
             if (c.topic.length() > 0)
