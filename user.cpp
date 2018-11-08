@@ -53,14 +53,14 @@ cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
         Parsing::IRC_message message(msg);
         if(message.command == "PASS"){
             //New user registering on first connection.
-            username = message.user;
+            username = message.name;
             //set the new hypothetical users password
             password = message.params[0];
         }
         else
         {
             //no password given. 
-            username = message.user;
+            username = message.name;
         }
     }
     else{

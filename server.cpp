@@ -58,7 +58,7 @@ cs457::user &cs457::server::getUser(std::string user)
     }
     else
     {
-        throw; //some sort of exception, user not found.
+        throw std::string("User " + user + " not found."); //some sort of exception, user not found.
     }
 }
 
@@ -544,6 +544,36 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "SETNAME")
     {
         connectedUser.setRealName(message.params[0]);
+        return 2;
+    }
+
+    else if (message.command == "WHOIS")
+    {
+        std::string retStr;
+         cout << "here2"<<endl;
+        for(std::string uName : message.params){
+            
+            try
+            {
+                cs457::user& info = getUser(uName);
+                retStr += info.getName() + ": \n";
+                if (info.socketActive)
+                    retStr+= "\t*ONLINE\n";
+                else
+                    retStr += "\t*OFFLINE\n";
+                if (info.getRealName().length() > 0)
+                    retStr += "\t*Real Name: " + info.getRealName();
+            }catch(std::string error){
+                cout << error <<endl;
+            }           
+        }
+        cout << "here"<<endl;
+        if(retStr.length() > 0)
+        {
+            connectedUser.userSocket.get()->sendString("\n" + retStr +"\r\n");
+        }
+        else
+            connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
         return 2;
     }
     else
