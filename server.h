@@ -19,6 +19,7 @@ struct channel
     std::string name;
     std::string password;
     std::vector<cs457::user> members;
+    std::string topic;
     
 }; 
 class server

@@ -475,24 +475,19 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
 
     //returns a print out of rules.
     else if (message.command == "RULES")
-    {        
-        std::string retS = "\n***************************\n"
-                         + std::string("Be respectful.\n")
-                         + "Don't try to break stuff.\n"
-                         + "Please.\n"
-                         + "Enjoy.\n"
-                         + "***************************\r\n";
+    {
+        std::string retS = "\n***************************\n" + std::string("Be respectful.\n") + "Don't try to break stuff.\n" + "Please.\n" + "Enjoy.\n" + "***************************\r\n";
         connectedUser.userSocket.get()->sendString(retS);
         return 2;
     }
 
-    //returns server time. 
+    //returns server time.
     else if (message.command == "TIME")
     {
         //follows example from: http://www.cplusplus.com/reference/ctime/strftime/
         time_t now;
-        struct tm* timestr;
-        char buffer [80];
+        struct tm *timestr;
+        char buffer[80];
 
         time(&now);
         timestr = localtime(&now);
@@ -502,6 +497,41 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
+    //sets the topic for the channel, or returns the topic for that channel.
+    else if (message.command == "TOPIC")
+    {
+        if (message.params.size() == 2)
+        {
+            //set the topic.
+            channel& chan = getChannel(message.params[0]);
+            chan.topic = message.params[1];
+            return 2;
+        }
+        else
+        {
+            try
+            {
+                std::string retmsg;
+                retmsg += ":" + connectedUser.getName() + " TOPIC ";
+                channel &chan = getChannel(message.params[0]);
+                retmsg += chan.name + " ";
+                if(chan.topic.length() > 0){
+                    retmsg += ":" + chan.topic + "\r\n";
+                }
+                else
+                {
+                    retmsg += ":not set.\r\n";
+                }
+                connectedUser.userSocket.get()->sendString(retmsg);
+                return 2;
+            }
+            catch (std::string error)
+            {
+                connectedUser.userSocket.get()->sendString(error + "\r\n");
+                return 2;
+            }
+        }
+    }
     else
     {
         std::cout << "unrecognized command " << message.command << endl
@@ -552,7 +582,10 @@ std::string cs457::server::listChannels(bool showUsers /*= false*/)
     std::string list;
     for (cs457::channel c : channels)
     {
-        list += c.name + "\n";
+        if (c.topic.length() > 0)
+            list += c.name + ": " + c.topic + "\n";
+        else
+            list += c.name + "\n";
         if (showUsers)
         {
             for (cs457::user u : c.members)

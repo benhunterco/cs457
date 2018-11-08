@@ -154,6 +154,11 @@ int cs457::client::rcvCommand()
         {
             std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."<<std::endl;
         }
+        else if (message.command == "TOPIC")
+        {
+            std::cout << "\n[CLIENT] topic for channel " << message.params[0] << " is " << message.params[1]
+            << "\n[CLIENT] Input Message or Command: " << std::flush;
+        }
         else if (message.command == "KICK")
         {
             std::cout << "\n[CLIENT] "<< message.name << " has kicked you from channel: " << message.params[0]<< ".";
