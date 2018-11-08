@@ -65,6 +65,11 @@ int cs457::client::command(std::string command)
             else
                 send(command);
         }
+        else if (msg.command == "VERSION")
+        {
+            std::cout<< "Client version 1.0\n";
+            send(command);
+        }
         else
         {
             //let the server deal with it.
@@ -129,6 +134,10 @@ int cs457::client::rcvCommand()
                 }
                 //don't do anything with it if its to yourself
             }
+        }
+        else if (message.command == "VERSION")
+        {
+            std::cout <<"\n"<<message.params[0] << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
         else if (message.command == "NOTICE")
         {

@@ -481,6 +481,13 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
+    //returns the version of the server.
+    else if (message.command == "VERSION")
+    {
+        std::string retS = ":server VERSION :Server version 1.0\r\n";
+        connectedUser.userSocket.get()->sendString(retS);
+        return 2;
+    }
     //returns server time.
     else if (message.command == "TIME")
     {
@@ -602,7 +609,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 
     //returns information about the given nicknames.
-    else if (message.command == "WHOIS")
+    else if (message.command == "USERHOST")
     {
         std::string retStr;
         for (std::string uName : message.params)
