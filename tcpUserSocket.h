@@ -31,6 +31,7 @@ namespace cs457
 
             ssize_t sendString(const string & data,bool useMutex = true);
             string getUniqueIdentifier();
+            string getIP();
          
 
         private:

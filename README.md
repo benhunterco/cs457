@@ -20,3 +20,27 @@ MESSAGE FROM user/#channel:
     "Hello there!"
 ***************************
 [client]
+
+## Levels
+I implement three out of the four levels directly, and the fourth indirectly. user, sysop and admim are implemented, but
+channelop is implemented in a roundabout way. The first person to create a channel is the op by nature of them being the first member. 
+This means I don't have to have a special indicator for their status, I just check to see their index in the vector. 
+The others are strings in the user class. 
+
+## Modes
+operator is treated as a level and not a mode for this implementation, so the 'o' flag is not valid.
+Instead, three modes can be set: i, s and w. 
+*i sets whether to recieve privmsgs.
+*s sets whether to recieve notices.
+*w sets whether to recieve wallops.
+
+A user can toggle each mode by sending "/mode [i|s|w]". 
+
+## Silence
+usage:
+/SILENCE <user> ... <user>
+Blocks messages from the users in the list. 
+
+## Part
+/PART <channelName> ... <channelName>
+Leaves the space sperated list of channels.

@@ -26,11 +26,16 @@ bool debug = false;
 int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server *myServer)
 {
 
+    bool cont = true; //two means go, 1 means leave, 0 means die.
     //first, we register the user. Could be its own method?
-    cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket);
-    cout << "[SERVER] Connected user: " << connectedUser.getName() << std::endl;
-
-    cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
+    cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket, &cont);
+    if(cont){
+        cout << "[SERVER] Connected user: " << connectedUser.getName() << std::endl;
+        cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
+    }
+    else{
+        cout << "\n[SERVER] Failed password from: " << connectedUser.getName() << std::endl;
+    }
     /**
      * here the client should send in their pass and user info. 
      * Then we can create a user for them.
@@ -38,13 +43,12 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
      */
     string msg;
     ssize_t val;
-    bool cont = true;
     while (cont)
     {
         tie(msg, val) = clientSocket.get()->recvString();
 
         //from man(recv), a return value of 0 indicates "stream socket peer has performed orderly shutdown".
-        if (val == 0)
+        if (val <= 0)
         {
             //Client has disconnected
             //or possibly, socket was killed elsewhere!
@@ -54,7 +58,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         }
         //call server command
         //return value could be boolean, indicates whether to continue.
-        cont = myServer->command(msg, connectedUser);
+        int ret = myServer->command(msg, connectedUser);
         if (debug)
         {
             cout << "[DEBUG] The client is sending message " << msg << " -- With value return = " << val << endl;
@@ -62,20 +66,26 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
             childT1.join();
         }
-        //not really something I need or use. 
-        if (msg.substr(0, 6) == "SERVER")
-        {
-            thread childTExit(&cs457::tcpUserSocket::sendString, clientSocket.get(), "GOODBYE EVERYONE", false);
-            thread childTExit2(&cs457::tcpUserSocket::sendString, clientSocket.get(), "\n", false);
-            ready = false;
-            cont = false;
-            childTExit.join();
-            childTExit2.join();
-        }
         else
         {
             cout << "[SERVER] waiting for another message \n[SERVER]>" << std::flush;
         }
+       
+        //deterimine whether we should continue.
+        switch (ret)
+        {
+            case 0:
+                cont = false;
+                ready = false;
+                break;
+            case 1:
+                cont = false;
+                break;
+            case 2: 
+                cont = true;
+        }
+        
+
     }
 
     //remove client from map here.
@@ -87,7 +97,7 @@ void adminCommands(cs457::server *myServer)
 {
     string command;
     bool continueAdmin = true;
-    while (continueAdmin)
+    while (continueAdmin && ready)
     {
         cout << "[SERVER]>";
         getline(cin, command);
@@ -103,6 +113,7 @@ void adminCommands(cs457::server *myServer)
                 cout << "Socket: " << u.second.getName() << endl;
                 cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
                 cout << "Connected: " << u.second.socketActive << endl;
+                cout << "Level: " << u.second.getLevel() << endl;
             }
         }
         else if (message.command == string("PING"))
@@ -144,6 +155,10 @@ string db = "db/";
 
 int main(int argc, char *argv[])
 {
+    //create the server object and get its start time. 
+    cs457::server myServer;
+    time(&myServer.startTime);
+
     opterr = 0;
     char c = ' ';
     while ((c = getopt(argc, argv, "p:c:d:")) != -1)
@@ -181,7 +196,6 @@ int main(int argc, char *argv[])
     vector<unique_ptr<thread>> threadList;
     //This map, with key of nickname will keep track of connected clients
 
-    cs457::server myServer;
     cout << "Starting administration thread here??? \n";
     thread adminThread(adminCommands, &myServer);
     while (ready)
