@@ -565,9 +565,9 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             if (userOnline(message.params[0]))
             {
                 cs457::user &victim = getUser(message.params[0]);
-                victim.userSocket.get()->sendString("You have been killed!\r\n");
-                //victim.closeSocket();
-                std::cout << victim.closeSocket();
+                victim.userSocket.get()->sendString(":" + message.name + " KILL\r\n");
+                victim.closeSocket();
+                //std::cout << victim.closeSocket();
                 return 2;
             }
         }

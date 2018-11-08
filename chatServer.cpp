@@ -135,6 +135,22 @@ void adminCommands(cs457::server *myServer)
         {
             continueAdmin = false;
             //Kill all threads and disconect clients here!
+            exit(0);
+        }
+        else if (message.command == "KILL")
+        {
+            if (myServer->userOnline(message.params[0]))
+            {
+                cs457::user &victim = myServer->getUser(message.params[0]);
+                victim.userSocket.get()->sendString(":SERVER KILL\r\n");
+                victim.closeSocket();
+                //std::cout << victim.closeSocket();
+            }
+            else
+            {
+                std::cout << "Killed user: " << message.params[0];
+                std::cout << "\n[SERVER]>" <<std::flush;
+            }
         }
         else if (message.command == "CHANNELS")
         {
