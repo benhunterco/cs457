@@ -49,6 +49,9 @@ public:
   std::string getPassword();
   bool checkPassword(std::string);
   void setPassword(std::string);
+
+  std::string getRealName();
+  void setRealName(std::string);
 private:
   std::string username;
   std::string password;
@@ -62,6 +65,8 @@ private:
    * gets returned when hit by privmsg. Maybe something else too?
    */
   std::string awayMessage;
+  //this is the real name. Not that It gets used anywhere at all....
+  std::string realName;
 };
 } // namespace cs457
 

@@ -66,6 +66,7 @@ cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
     else{
         /*Something went wrong!!!*/
     }
+    realName = "";
     awayMessage = "I, " + username + " am not here right now.";
     
 }
@@ -115,6 +116,15 @@ void cs457::user::setPassword(std::string pass)
     password = pass;
 }
 
+void cs457::user::setRealName(std::string name)
+{
+    realName = name;
+}
+
+std::string cs457::user::getRealName()
+{
+    return realName;
+}
 /*
 std::ostream& operator<<(std::ostream& os, const cs457::user us)
 {

@@ -540,6 +540,12 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         connectedUser.setPassword(message.params[0]);
         return 2;
     }
+
+    else if (message.command == "SETNAME")
+    {
+        connectedUser.setRealName(message.params[0]);
+        return 2;
+    }
     else
     {
         std::cout << "unrecognized command " << message.command << endl
