@@ -86,7 +86,10 @@ string cs457::tcpUserSocket::getUniqueIdentifier()
      string identifier  = "[" + clientAddressIPv4 + "," + to_string(clientPortIPv4) + "]"; 
      return identifier; 
 };
-
+string cs457::tcpUserSocket::getIP()
+{
+    return clientAddressIPv4;
+}
 struct sockaddr * cs457::tcpUserSocket::getAddressPointer()
 {
     return ((struct sockaddr *) &userAddress);

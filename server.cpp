@@ -547,29 +547,61 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
+    //returns ips of the given nicknames
+    else if (message.command == "USERIP")
+    {
+        std::string retStr;
+        for (std::string uName : message.params)
+        {
+
+            try
+            {
+                cs457::user &info = getUser(uName);
+                retStr += info.getName() + "'s IP address is: ";
+                if (info.socketActive)
+                    retStr += info.userSocket.get()->getIP() + "\n";
+                else
+                    retStr += "OFFLINE\n";
+            }
+            catch (std::string error)
+            {
+                cout << error << endl;
+            }
+        }
+        if (retStr.length() > 0)
+        {
+            connectedUser.userSocket.get()->sendString("Found Users:\n" + retStr + "\r\n");
+        }
+        else
+            connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
+        return 2;
+    }
     //returns information about the given nicknames.
     else if (message.command == "WHOIS")
     {
         std::string retStr;
-        for(std::string uName : message.params){
-            
+        for (std::string uName : message.params)
+        {
+
             try
             {
-                cs457::user& info = getUser(uName);
+                cs457::user &info = getUser(uName);
                 retStr += info.getName() + ": \n";
                 if (info.socketActive)
-                    retStr+= "\t*ONLINE\n";
+                    retStr += "\t*ONLINE\n";
                 else
                     retStr += "\t*OFFLINE\n";
                 if (info.getRealName().length() > 0)
                     retStr += "\t*Real Name: " + info.getRealName();
-            }catch(std::string error){
-                cout << error <<endl;
-            }           
+            }
+            catch (std::string error)
+            {
+                cout << error << endl;
+            }
         }
-        if(retStr.length() > 0)
+        if (retStr.length() > 0)
         {
-            connectedUser.userSocket.get()->sendString("\n" + retStr +"\r\n");
+            connectedUser.userSocket.get()->sendString("\n" + retStr + "\r\n");
         }
         else
             connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
@@ -580,19 +612,20 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "WHO")
     {
         std::string retStr;
-        for(std::string rName : message.params){
+        for (std::string rName : message.params)
+        {
             retStr += "\nThe following users have real name " + rName + ":";
-            for(auto u : getUsers())
+            for (auto u : getUsers())
             {
-                if(u.second.getRealName() == rName)
+                if (u.second.getRealName() == rName)
                     retStr += "\n\t*" + u.second.getName();
             }
         }
-        if(retStr.length() > 0)
+        if (retStr.length() > 0)
         {
-            connectedUser.userSocket.get()->sendString(retStr +"\r\n");
+            connectedUser.userSocket.get()->sendString(retStr + "\r\n");
         }
-         else
+        else
             connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
         return 2;
     }
@@ -604,7 +637,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 }
 
-cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket, bool* cont)
+cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket, bool *cont)
 {
     cs457::user connectedUser(clientSocket);
     if (!userExists(connectedUser.getName()))
@@ -618,7 +651,8 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
     {
         //already seen, so have to check password.
         cs457::user &returnedUser = getUser(connectedUser.getName());
-        if (returnedUser.checkPassword(connectedUser.getPassword())){
+        if (returnedUser.checkPassword(connectedUser.getPassword()))
+        {
             returnedUser.setSocket(clientSocket);
             returnedUser.socketActive = true;
             return returnedUser;
