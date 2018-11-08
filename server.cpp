@@ -547,10 +547,10 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
+    //returns information about the given nicknames.
     else if (message.command == "WHOIS")
     {
         std::string retStr;
-         cout << "here2"<<endl;
         for(std::string uName : message.params){
             
             try
@@ -567,12 +567,32 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 cout << error <<endl;
             }           
         }
-        cout << "here"<<endl;
         if(retStr.length() > 0)
         {
             connectedUser.userSocket.get()->sendString("\n" + retStr +"\r\n");
         }
         else
+            connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
+        return 2;
+    }
+
+    //returns a list of nicknames that have a given realname
+    else if (message.command == "WHO")
+    {
+        std::string retStr;
+        for(std::string rName : message.params){
+            retStr += "\nThe following users have real name " + rName + ":";
+            for(auto u : getUsers())
+            {
+                if(u.second.getRealName() == rName)
+                    retStr += "\n\t*" + u.second.getName();
+            }
+        }
+        if(retStr.length() > 0)
+        {
+            connectedUser.userSocket.get()->sendString(retStr +"\r\n");
+        }
+         else
             connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
         return 2;
     }
