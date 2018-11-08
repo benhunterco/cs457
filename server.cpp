@@ -576,6 +576,31 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
         return 2;
     }
+
+    //return all user and some info about them.
+    else if (message.command == "USERS")
+    {
+        std::string retStr;
+        for (auto u : getUsers())
+        {
+            retStr += "\nUser: " + u.second.getName();
+            if(u.second.getRealName().length() > 0)
+                retStr += "\n\tRealName: " + u.second.getRealName();
+            retStr += "\n\tLevel: " + u.second.getLevel();
+            if(u.second.socketActive)
+                retStr += "\n\tConnection Status: Online";
+            else
+                retStr += "\n\tConnection Status: Offline";
+        }
+        if (retStr.length() > 0)
+        {
+            connectedUser.userSocket.get()->sendString("\nList of known users:" + retStr + "\r\n");
+        }
+        else
+            connectedUser.userSocket.get()->sendString("No registered users?\r\n");
+        return 2;
+    }
+
     //returns information about the given nicknames.
     else if (message.command == "WHOIS")
     {
