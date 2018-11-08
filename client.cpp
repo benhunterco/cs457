@@ -159,6 +159,21 @@ int cs457::client::rcvCommand()
                 //don't do anything with it if its to yourself
             }
         }
+        else if (message.command == "KNOCK")
+        {
+            if(message.name == username)
+            {
+                //knock came back. either we don't need to knock or can't knock
+            }
+            else
+            {
+                std::string retStr = "\n[CLIENT] User " + message.name + " would like to join " + message.params[0] + ".";
+                if(message.params.size() > 1)
+                    retStr += " \nThey gave the message:\n\t" + message.params[1];
+                retStr += "\n[CLIENT] If you would like to invite them, use /INVITE " + message.name + " " + message.params[0];
+                std::cout << retStr << "\n[CLIENT] Inpue Message or Command: " << std::flush;
+            }
+        }
         else if (message.command == "INVITE")
         {
             std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."<<std::endl;

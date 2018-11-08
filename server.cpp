@@ -239,7 +239,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //send to each member of the channel.
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive && rcvUser.s)
+                        if (rcvUser.socketActive && rcvUser.s && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
@@ -644,6 +644,41 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 return 2;
             }
         }
+    }
+
+    //sends a notification to a invitation only server that the user would like an invite.
+    //does not notify private servers.
+    //does not notify open servers. 
+    else if (message.command == "KNOCK")
+    {
+         try
+            {
+                std::string recipient = message.params[0];
+                //get the channel by name.
+                cs457::channel& rcvChannel = getChannel(recipient);
+                //send to each member of the channel.
+                //if the channel is invitation only
+                if(rcvChannel.i)
+                {
+                    for (cs457::user &rcvUser : rcvChannel.members)
+                    {
+                        //setting n will also make a server un-knockable. This behavior may not be specified.
+                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
+                        {
+                            //does pretty much the same as below. Client should check recipient to see if its a channel then?
+                            std::string sendString = ":" + message.name + " KNOCK " + recipient + " :" + message.params[1] + "\r\n";
+                            //sends the recipient the string, although we take out other recipients.
+                            //Might not be necessary. Maybe only need to strip channels?
+                            rcvUser.userSocket.get()->sendString(sendString);
+                        }
+                    }
+                }
+            }
+            catch (std::string e)
+            {
+                //Channel not found. Can just ignore for now.
+            }
+            return 2;
     }
 
     //sets the pass of an already authenticated and connected user. Use this to change from default @
