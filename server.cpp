@@ -171,7 +171,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
+                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel))
+                        && !rcvUser.silencedUsers[connectedUser.getName()])
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
@@ -193,17 +194,16 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 cs457::user &rcvUser = getUser(recipient);
                 //in future, will be for loop for each user in params[0]
                 //check to see if they're online and visible
-                if (rcvUser.socketActive && !rcvUser.i)
+                if (rcvUser.socketActive && !rcvUser.i && !rcvUser.silencedUsers[connectedUser.getName()])
                 {
                     std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
                     //sends the recipient the string, although we take out other recipients.
                     //Might not be necessary. Maybe only need to strip channels?
                     rcvUser.userSocket.get()->sendString(sendString);
                 }
-                else
+                else if (!rcvUser.silencedUsers[connectedUser.getName()])
                 {
-                    //IDK save message for later maybe? Send away message back?
-                    //std::cout << "USER NOT FOUND" << endl;
+                    //sends away message if the user is away. But not if they silenced.
                     connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
                 }
             }
@@ -239,7 +239,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //send to each member of the channel.
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive && rcvUser.s && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
+                        if (rcvUser.socketActive && rcvUser.s && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel))
+                        && !rcvUser.silencedUsers[connectedUser.getName()])
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
@@ -259,7 +260,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 //CHECK TO SEE IF USER EXISTS!!!
                 cs457::user &rcvUser = getUser(recipient);
                 //in future, will be for loop for each user in params[0]
-                if (rcvUser.socketActive && rcvUser.s)
+                if (rcvUser.socketActive && rcvUser.s && !rcvUser.silencedUsers[connectedUser.getName()])
                 {
                     std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
                     //sends the recipient the string, although we take out other recipients.
@@ -692,6 +693,33 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
+    //Adds the given users to the silence list(even if they don't exist.)
+    //Or if no users are given, returns the silence list. 
+    else if (message.command == "SILENCE")
+    {
+        if(message.params.size() < 1)
+        {
+            //return the list of silenced users
+            std::string retStr = "\nList of banned silenced users: ";
+            for(auto u : connectedUser.silencedUsers)
+            {
+                retStr += "\n*" + u.first;
+            }
+            retStr += "\r\n";
+            connectedUser.userSocket.get()->sendString(retStr);
+        }
+        else
+        {
+            //silence all users in list. 
+            for(std::string user : message.params)
+            {
+                connectedUser.silencedUsers[user] = true;
+            }
+        }
+        return 2;
+    }
+
+    //sets the users "real name"
     else if (message.command == "SETNAME")
     {
         connectedUser.setRealName(message.params[0]);

@@ -15,6 +15,7 @@ For the server's use.
 #pragma once
 #include <string>
 #include <iostream>
+#include <map>
 #include "tcpUserSocket.h"
 
 namespace cs457
@@ -52,6 +53,9 @@ public:
 
   std::string getRealName();
   void setRealName(std::string);
+
+  std::map<std::string, bool> silencedUsers;
+
 private:
   std::string username;
   std::string password;
