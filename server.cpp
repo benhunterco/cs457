@@ -485,6 +485,23 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         connectedUser.userSocket.get()->sendString(retS);
         return 2;
     }
+
+    //returns server time. 
+    else if (message.command == "TIME")
+    {
+        //follows example from: http://www.cplusplus.com/reference/ctime/strftime/
+        time_t now;
+        struct tm* timestr;
+        char buffer [80];
+
+        time(&now);
+        timestr = localtime(&now);
+        strftime(buffer, 80, "Server time: %I:%M%p.", timestr);
+        std::string timeString(buffer);
+        connectedUser.userSocket.get()->sendString(timeString + "\r\n");
+        return 2;
+    }
+
     else
     {
         std::cout << "unrecognized command " << message.command << endl
