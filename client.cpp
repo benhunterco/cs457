@@ -10,7 +10,7 @@ size_t cs457::client::registerUser()
 {
     /**send appropriate registration details
      */
-    std::string registration = "NICK " + username + "\r\n";
+    std::string registration = "PASS " + password + "\r\n";
     return send(registration);
     //possibly do passwordy stuff here.
 }

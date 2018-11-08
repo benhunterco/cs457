@@ -46,7 +46,9 @@ public:
   bool s = true;  //recieves notice command
   bool w = false; //recieves wallops
   //note. Operator flag is not added, because that is treated through the oper command only.
-
+  std::string getPassword();
+  bool checkPassword(std::string);
+  void setPassword(std::string);
 private:
   std::string username;
   std::string password;

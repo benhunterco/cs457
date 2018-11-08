@@ -98,6 +98,7 @@ int main(int argc, char **argv)
     while (cont)
     {
         std::cout << "[CLIENT] Use /CONNECT to connect to defaults, or /CONNECT <hostname> <port>, or /EXIT to exit \n"
+                  << "[CLIENT] Use /CPASS to change the clients password for reconnect\n"
                   << "[CLIENT] Input Message or Command: ";
         std::string input;
         getline(std::cin, input);
@@ -124,6 +125,10 @@ int main(int argc, char **argv)
                 std::thread receiveThread(clientReceive);
                 sendThread.join();
                 receiveThread.join();
+            }
+            else if (msg.command == "CPASS")
+            {
+                client.password = msg.params[0];
             }
             else if (msg.command == "EXIT")
                 cont = false;

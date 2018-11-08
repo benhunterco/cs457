@@ -11,6 +11,7 @@ class client
   public:
     std::string hostname = "127.0.0.1";
     std::string username = "bobby";
+    std::string password = "@";
     int serverport = 2000;
     std::string configFile = "";
     std::string testFile = "";

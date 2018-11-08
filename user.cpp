@@ -51,9 +51,16 @@ cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
         //append the crlf thing???
         //ohh yeah probably do this clientside!!!!TODO
         Parsing::IRC_message message(msg);
-        if(message.command == "NICK"){
+        if(message.command == "PASS"){
             //New user registering on first connection.
-            username = message.params[0];
+            username = message.user;
+            //set the new hypothetical users password
+            password = message.params[0];
+        }
+        else
+        {
+            //no password given. 
+            username = message.user;
         }
     }
     else{
@@ -91,6 +98,21 @@ void cs457::user::setLevel(std::string newLevel)
 std::string cs457::user::getLevel()
 {
     return level;
+}
+
+std::string cs457::user::getPassword()
+{
+    return password;
+}
+
+bool cs457::user::checkPassword(std::string match)
+{
+    return password == match;
+}
+
+void cs457::user::setPassword(std::string pass)
+{
+    password = pass;
 }
 
 /*

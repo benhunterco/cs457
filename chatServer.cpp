@@ -26,11 +26,16 @@ bool debug = false;
 int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server *myServer)
 {
 
+    bool cont = true; //two means go, 1 means leave, 0 means die.
     //first, we register the user. Could be its own method?
-    cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket);
-    cout << "[SERVER] Connected user: " << connectedUser.getName() << std::endl;
-
-    cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
+    cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket, &cont);
+    if(cont){
+        cout << "[SERVER] Connected user: " << connectedUser.getName() << std::endl;
+        cout << "[SERVER] Waiting for message from Client Thread" << id << std::endl;
+    }
+    else{
+        cout << "\n[SERVER] Failed password from: " << connectedUser.getName() << std::endl;
+    }
     /**
      * here the client should send in their pass and user info. 
      * Then we can create a user for them.
@@ -38,7 +43,6 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
      */
     string msg;
     ssize_t val;
-    bool cont = true; //two means go, 1 means leave, 0 means die.
     while (cont)
     {
         tie(msg, val) = clientSocket.get()->recvString();

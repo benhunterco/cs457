@@ -503,7 +503,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         if (message.params.size() == 2)
         {
             //set the topic.
-            channel& chan = getChannel(message.params[0]);
+            channel &chan = getChannel(message.params[0]);
             chan.topic = message.params[1];
             return 2;
         }
@@ -515,7 +515,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 retmsg += ":" + connectedUser.getName() + " TOPIC ";
                 channel &chan = getChannel(message.params[0]);
                 retmsg += chan.name + " ";
-                if(chan.topic.length() > 0){
+                if (chan.topic.length() > 0)
+                {
                     retmsg += ":" + chan.topic + "\r\n";
                 }
                 else
@@ -532,6 +533,13 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             }
         }
     }
+
+    //sets the pass of an already authenticated and connected user. Use this to change from default @
+    else if (message.command == "PASS")
+    {
+        connectedUser.setPassword(message.params[0]);
+        return 2;
+    }
     else
     {
         std::cout << "unrecognized command " << message.command << endl
@@ -540,21 +548,32 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 }
 
-cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket)
+cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket, bool* cont)
 {
     cs457::user connectedUser(clientSocket);
     if (!userExists(connectedUser.getName()))
     {
+        //if he doesn't exist, add directly.
         addUser(connectedUser);
         cs457::user &myref = userMap.at(connectedUser.getName());
         return myref;
     }
     else
     {
+        //already seen, so have to check password.
         cs457::user &returnedUser = getUser(connectedUser.getName());
-        returnedUser.setSocket(clientSocket);
-        returnedUser.socketActive = true;
-        return returnedUser;
+        if (returnedUser.checkPassword(connectedUser.getPassword())){
+            returnedUser.setSocket(clientSocket);
+            returnedUser.socketActive = true;
+            return returnedUser;
+        }
+        else
+        {
+            connectedUser.userSocket.get()->sendString("Failed password attempt. Please reconnect.\r\n");
+            connectedUser.closeSocket();
+            (*cont) = false;
+            return returnedUser;
+        }
     }
     //trying to more explicitily get the reference to the maps copy of the user.
 }

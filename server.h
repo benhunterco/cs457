@@ -27,7 +27,7 @@ class server
   public:
     bool addUser(cs457::user);
     bool removeUser(cs457::user);
-    cs457::user& addUserWithSocket(shared_ptr<cs457::tcpUserSocket>);
+    cs457::user& addUserWithSocket(shared_ptr<cs457::tcpUserSocket>, bool*);
     bool addChannel(cs457::user, std::string channelName);
     bool addUserToChannel(cs457::user&, std::string channelName, std::string pass = "@");
     //std::map<std::string, cs457::user> getUserMap();
