@@ -179,6 +179,14 @@ int cs457::client::rcvCommand()
             }
             std::cout<< "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+        else if (message.command == "WALLOPS")
+        {
+            if (message.name != username)
+            {
+                std::cout << "\n[CLIENT] WALLOP'ing from " << message.name << ": " << message.params[0]
+                          << "\n[CLIENT] Input Message or Command: " << std::flush;
+            }
+        }
         else
         {
             // just echo out what we recieved.

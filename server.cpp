@@ -255,6 +255,20 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
+    //same as notice except it sends only to those with w set or sysop level
+    else if (message.command == "WALLOPS")
+    {
+        //Look through all users and send to w's and sysops.
+        for (auto u : getUsers())
+        {
+            if((u.second.w || u.second.getLevel() == "sysop") && u.second.socketActive)
+            {
+                u.second.userSocket.get()->sendString(":" + connectedUser.getName() + " WALLOPS :" + message.params[0] + "\r\n");
+            }
+        }
+        return 2;
+    }
+
     //Handles the away command
     else if (message.command == "AWAY")
     {
@@ -591,10 +605,10 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         for (auto u : getUsers())
         {
             retStr += "\nUser: " + u.second.getName();
-            if(u.second.getRealName().length() > 0)
+            if (u.second.getRealName().length() > 0)
                 retStr += "\n\tRealName: " + u.second.getRealName();
             retStr += "\n\tLevel: " + u.second.getLevel();
-            if(u.second.socketActive)
+            if (u.second.socketActive)
                 retStr += "\n\tConnection Status: Online";
             else
                 retStr += "\n\tConnection Status: Offline";
