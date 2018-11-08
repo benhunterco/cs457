@@ -472,6 +472,19 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         }
         return 2;
     }
+
+    //returns a print out of rules.
+    else if (message.command == "RULES")
+    {        
+        std::string retS = "\n***************************\n"
+                         + std::string("Be respectful.\n")
+                         + "Don't try to break stuff.\n"
+                         + "Please.\n"
+                         + "Enjoy.\n"
+                         + "***************************\r\n";
+        connectedUser.userSocket.get()->sendString(retS);
+        return 2;
+    }
     else
     {
         std::cout << "unrecognized command " << message.command << endl
