@@ -833,6 +833,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
         return 2;
     }
+
+    //Command is not recognized.
     else
     {
         std::cout << "unrecognized command " << message.command << endl
