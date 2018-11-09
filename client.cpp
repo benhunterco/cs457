@@ -60,7 +60,7 @@ int cs457::client::command(std::string command)
         else if (msg.command == "OPER")
         {
             if(msg.params.size() < 2){
-                std::cout << "[CLIENT] <userName> <password> is required for /OPER. \n";
+                std::cout << "[CLIENT] <userName> <password> is required for /KICK. \n";
             }
             else
                 send(command);
@@ -138,12 +138,6 @@ int cs457::client::rcvCommand()
         else if (message.command == "VERSION")
         {
             std::cout <<"\n"<<message.params[0] << "\n[CLIENT] Input Message or Command: " << std::flush;
-        }
-
-        else if (message.command == "KILL")
-        {
-            std::cout << "\n[CLIENT] Killed by: " << message.name << ". Press enter to continue."<< std::flush;
-            return 0;
         }
         else if (message.command == "NOTICE")
         {

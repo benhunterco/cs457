@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <fstream>
+//#include <istringstream>
 #include "tcpUserSocket.h"
 #include "tcpClientSocket.h"
 #include "Parsing.h"
@@ -92,10 +94,61 @@ int main(int argc, char **argv)
             abort();
         }
 
-    //for now don't do anything, but presumably we could call stuff later.
-    std::cout << "Hostname (default 127.0.0.1): " << client.hostname << " Username (default bobby): " << client.username << " ServerPort (default 2000): " << client.serverport << " configfile: "
-              << client.configFile << " TestFile: " << client.testFile << " LogFile: " << client.logFile << "\n";
+    if(client.configFile.length() > 0)
+    {
+        //we got to parse that bad boy.
+        std::ifstream config(client.configFile);
+        if(config.is_open())
+        {
+            std::string line;
+            while(getline(config, line))
+            {
+                if(line[0] != '#')
+                {
+                    std::istringstream iss(line);
+                    std::string value; std::string attribute;
+                    iss >> attribute;
+                    iss >> value;
+                    if(attribute == "last_server_used")
+                        client.hostname = value;
+                    else if(attribute == "port")
+                        client.serverport = stoi(value);
+                    else if (attribute == "default_debug_mode")
+                    {
+                        if(value == "false")
+                        {
+                            debug = false;
+                            client.debug = false;
+                        }
+                        else{
+                            debug = true;
+                            client.debug = true;
+                        }
+                    }
+                    else if (attribute == "log")
+                    {
+                        if(value == "false")
+                        {
+                            client.log = false;
+                        }
+                        else{
+                            client.log = true;
+                        }
+                    }
+                    else if (attribute == "default_log_file")
+                    {
+                        client.logFile = value;
+                    }
+                }
+            }
+        }
+        else   
+            std::cerr << "file could not be opened";
+    }
 
+    if(debug)
+    std::cout << "Hostname (default 127.0.0.1): " << client.hostname << " Username (default bobby): " << client.username << " ServerPort (default 2000): " 
+        << client.serverport << " configfile: "<< client.configFile << " TestFile: " << client.testFile << " LogFile: " << client.logFile << "\n";
     //Will allow the user to connect.
     bool cont = true;
     while (cont)
