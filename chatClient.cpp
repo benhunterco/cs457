@@ -94,6 +94,7 @@ int main(int argc, char **argv)
             abort();
         }
 
+    //parse the config file.
     if(client.configFile.length() > 0)
     {
         //we got to parse that bad boy.

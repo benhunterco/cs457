@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <fstream>
 #include "tcpUserSocket.h"
 #include "tcpServerSocket.h"
 #include "Parsing.h"
@@ -174,7 +175,7 @@ void adminCommands(cs457::server *myServer)
 }
 
 int port = 2000;
-string configFile = "chatserver.conf";
+string configFile("conf/chatserver.conf");
 string db = "db/";
 
 int main(int argc, char *argv[])
@@ -208,6 +209,37 @@ int main(int argc, char *argv[])
             abort();
         }
 
+    //parse the config file.
+    if(configFile.length() > 0)
+    {
+        
+        //we got to parse that bad boy.
+        std::ifstream config(configFile);
+        
+        if(config.is_open())
+        {
+             std::string line;
+             
+            while(getline(config, line))
+            {
+                
+                if(line[0] != '#')
+                {
+                    std::istringstream iss(line);
+                    std::string value; std::string attribute;   
+                    iss >> attribute;                                        
+                    iss >> value;                    
+                    if(attribute == "port")
+                        port = stoi(value);                    
+                    else if (attribute == "dbpath")
+                        db = value;
+                }
+            }
+        }
+        else   
+            std::cerr << "file could not be opened";
+    }
+
     cout <<"***************Starting Server***************\n";
     cout << "Initializing Socket on port " << port << std::endl;
     cs457::tcpServerSocket mysocket(port);
@@ -222,6 +254,8 @@ int main(int argc, char *argv[])
     //This map, with key of nickname will keep track of connected clients
 
     cout <<"***************Started Server****************\n";
+    if(debug)
+        cout << "VALS " << db << " " << port << endl;
     thread adminThread(adminCommands, &myServer);
     while (ready)
     {
