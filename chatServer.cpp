@@ -170,6 +170,10 @@ void adminCommands(cs457::server *myServer)
         {
             myServer->writeUsers();
         }
+        else if (message.command == "WBANS")
+        {
+            myServer->writeBans();
+        }
         else
         {
             if(command.length() > 0)

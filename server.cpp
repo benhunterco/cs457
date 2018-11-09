@@ -69,6 +69,19 @@ void cs457::server::writeUsers()
     }
 }
 
+void cs457::server::writeBans()
+{
+    remove((dbPath + "banusers.txt").c_str());
+    std::ofstream myfile (dbPath + "banusers.txt");
+    if(myfile.is_open())
+    {
+        for(std::string u : bannedUsers)
+        {
+            myfile << u + "\n";
+        }
+    }
+}
+
 bool plusorminus(char pom)
 {
     if (pom == '+')
