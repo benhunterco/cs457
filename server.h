@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <istream>
+#include <fstream> 
 #include "Parsing.h"
 #include <time.h>
 /** This class builds a representation of the state of the server.
@@ -61,11 +62,22 @@ class server
     /*Parses and evaluates the command given. 
       lets see if this is a good way of doing things
       */
+    std::vector<std::string> bannedUsers;
     int command(std::string, cs457::user&);
+    std::string dbPath = "db/";
     std::string listChannels(bool showUsers = false);
     time_t startTime;
     bool userExists(std::string);
     bool userOnline(std::string);
+
+    void writeUsers();
+    void writeBans();
+    void writeChannels();
+
+    void readUsers();
+    void readBans();
+    void readChannels();
+    void readBanner();
 
   private:
     std::map<std::string, cs457::user> userMap;

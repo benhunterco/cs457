@@ -56,6 +56,19 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     return true;
 }
 
+void cs457::server::writeUsers()
+{
+    remove((dbPath + "users.txt").c_str());
+    std::ofstream myfile (dbPath + "users.txt");
+    if(myfile.is_open())
+    {
+        for(auto u : userMap)
+        {
+            myfile << u.second.toString() + "\n";
+        }
+    }
+}
+
 bool plusorminus(char pom)
 {
     if (pom == '+')
@@ -855,20 +868,33 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
     }
     else if(!userOnline(connectedUser.getName()))
     {
+        bool banned = false;
+        for (std::string u : bannedUsers)
+        {
+            if( u == connectedUser.getName())
+                banned = true;
+        }
         //already seen, so have to check password.
         cs457::user &returnedUser = getUser(connectedUser.getName());
-        if (returnedUser.checkPassword(connectedUser.getPassword()))
+        if (returnedUser.checkPassword(connectedUser.getPassword()) && !banned)
         {
             returnedUser.setSocket(clientSocket);
             returnedUser.socketActive = true;
             return returnedUser;
         }
-        else
+        else if (!banned)
         {
             connectedUser.userSocket.get()->sendString("Failed password attempt. Please reconnect.\r\n");
             connectedUser.closeSocket();
             (*cont) = false;
             return returnedUser;
+        }
+        else 
+        {
+            connectedUser.userSocket.get()->sendString("You are banned.\r\n");
+            connectedUser.closeSocket();
+            (*cont) = false;
+            return returnedUser; 
         }
     }
     else 

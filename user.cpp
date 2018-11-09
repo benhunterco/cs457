@@ -87,6 +87,17 @@ void cs457::user::setAwayMessage(std::string newMessage)
     return;
 }
 
+std::string cs457::user::toString()
+{
+    std::string ban;
+    if(banned)
+        ban = "true";
+    else
+        ban = "false";
+    std::string retStr = username + " " + password + " " + level + " " + ban;
+    return retStr;
+}
+
 std::string cs457::user::getAwayMessage(){
     return awayMessage;
 }

@@ -166,6 +166,10 @@ void adminCommands(cs457::server *myServer)
             cout << "Found channels:\n"
                  << channels;
         }
+        else if (message.command == "WUSERS")
+        {
+            myServer->writeUsers();
+        }
         else
         {
             if(command.length() > 0)
@@ -232,7 +236,10 @@ int main(int argc, char *argv[])
                     if(attribute == "port")
                         port = stoi(value);                    
                     else if (attribute == "dbpath")
+                    {
                         db = value;
+                        myServer.dbPath = value;
+                    }
                 }
             }
         }

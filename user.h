@@ -56,6 +56,8 @@ public:
 
   std::map<std::string, bool> silencedUsers;
 
+  std::string toString();
+
 private:
   std::string username;
   std::string password;
