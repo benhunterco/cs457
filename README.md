@@ -27,7 +27,7 @@ The client is run with `./chatClient.out` plus command line arguments.
 * `-u` the most important argument, sets the username. I've set the default to `bobby` for quicker testing, but this argument is needed for users to use a different name.
 * `-h` can be used to set the host server address (defaults to 127.0.0.1). 
 * `-p` sets the port on which to make the connection (defaults to 2000).
-* `-c` sets the config file name. (defaults to chatclient.conf).
+* `-c` sets the config file name (no default, when given it overwrites command line arguments).
 * `-t` sets the test file name. This is not yet implemented.
 * `-L` sets the log file name. This is not yet implemented.
 
