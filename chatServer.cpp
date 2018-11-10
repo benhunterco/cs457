@@ -180,6 +180,10 @@ void adminCommands(cs457::server *myServer)
         {
             myServer->writeBans();
         }
+        else if (message.command == "WCHANNELS")
+        {
+            myServer->writeChannels();
+        }
         else if (message.command == "RBANNER")
         {
             myServer->readBanner();

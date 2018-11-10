@@ -111,6 +111,26 @@ void cs457::server::writeBans()
     }
 }
 
+void cs457::server::writeChannels()
+{
+    remove((dbPath + "channels.txt").c_str());
+    std::ofstream myfile (dbPath + "channels.txt");
+    if(myfile.is_open())
+    {
+        for(cs457::channel c : channels)
+        {
+            myfile << c.name << " ";
+            if(c.password.size() > 0)
+                myfile << c.password;
+            else
+                myfile << "@";
+            myfile << "\n";
+
+        }
+        myfile.close();
+    }
+}
+
 bool cs457::server::readBanner()
 {
     banner.erase();//empty the current banner.
