@@ -1,0 +1,2 @@
+jon @ user true 
+bobby @ sysop false

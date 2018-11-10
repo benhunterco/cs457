@@ -16,11 +16,11 @@ bool cs457::server::addUser(cs457::user newUser)
     return false;
 }
 
-bool cs457::server::userInChannel(cs457::user& check, cs457::channel& chan)
+bool cs457::server::userInChannel(cs457::user &check, cs457::channel &chan)
 {
-    for(cs457::user& member : chan.members)
+    for (cs457::user &member : chan.members)
     {
-        if(member.getName() == check.getName())
+        if (member.getName() == check.getName())
             return true;
     }
     return false;
@@ -54,6 +54,148 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     newChannel.password = "@";
     channels.push_back(newChannel);
     return true;
+}
+
+bool cs457::server::addChannel(std::string channelName, std::string password)
+{
+    cs457::channel newChannel;
+    newChannel.name = channelName;
+    newChannel.password = password;
+    if (newChannel.password != "@")
+    {
+        newChannel.p = true;
+        newChannel.k = true;
+    }
+    channels.push_back(newChannel);
+    return true;
+}
+
+bool cs457::server::writeUsers()
+{
+    remove((dbPath + "users.txt").c_str());
+    std::ofstream myfile(dbPath + "users.txt");
+    if (myfile.is_open())
+    {
+        for (auto u : userMap)
+        {
+            myfile << u.second.toString() + "\n";
+        }
+        myfile.close();
+        return true;
+    }
+    return false;
+}
+
+void cs457::server::addUserFromFile(std::string fileLine)
+{
+    std::istringstream iss(fileLine);
+    std::string uName;
+    std::string pass;
+    std::string level;
+    std::string banned;
+    iss >> uName;
+    iss >> pass;
+    iss >> level;
+    iss >> banned;
+    if (banned == "true")
+        bannedUsers.push_back(uName);
+    //cout << banned;
+    addUser(cs457::user(uName, pass, level, banned));
+}
+
+void cs457::server::addChannelFromFile(std::string fileLine)
+{
+
+    std::istringstream iss(fileLine);
+    std::string channelName;
+    std::string pass;
+    iss >> channelName;
+    iss >> pass;
+    addChannel(channelName, pass);
+}
+
+bool cs457::server::readUsers()
+{
+    std::string line;
+    ifstream userStream(dbPath + "users.txt");
+    if (userStream.is_open())
+    {
+        while (getline(userStream, line))
+        {
+            addUserFromFile(line);
+        }
+        return true;
+    }
+    return false;
+}
+bool cs457::server::readChannels()
+{
+    std::string line;
+    ifstream userStream(dbPath + "channels.txt");
+    if (userStream.is_open())
+    {
+        while (getline(userStream, line))
+        {
+            addChannelFromFile(line);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool cs457::server::writeBans()
+{
+    remove((dbPath + "banusers.txt").c_str());
+    std::ofstream myfile(dbPath + "banusers.txt");
+    if (myfile.is_open())
+    {
+        for (std::string u : bannedUsers)
+        {
+            myfile << u + "\n";
+        }
+        myfile.close();
+        return true;
+    }
+    return false;
+}
+
+bool cs457::server::writeChannels()
+{
+    remove((dbPath + "channels.txt").c_str());
+    std::ofstream myfile(dbPath + "channels.txt");
+    if (myfile.is_open())
+    {
+        for (cs457::channel c : channels)
+        {
+            myfile << c.name << " ";
+            if (c.password.size() > 0)
+                myfile << c.password;
+            else
+                myfile << "@";
+            myfile << "\n";
+        }
+        myfile.close();
+        return true;
+    }
+    return false;
+}
+
+bool cs457::server::readBanner()
+{
+    banner.erase(); //empty the current banner.
+    std::string line;
+    ifstream bannerFile(dbPath + "banner.txt");
+    if (bannerFile.is_open())
+    {
+        while (getline(bannerFile, line))
+        {
+            banner += line + "\n";
+        }
+        std::cout << banner;
+        return true;
+    }
+    else
+        return false;
 }
 
 bool plusorminus(char pom)
@@ -166,13 +308,12 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 try
                 {
                     //get the channel by name.
-                    cs457::channel& rcvChannel = getChannel(recipient);
+                    cs457::channel &rcvChannel = getChannel(recipient);
                     //send to each member of the channel.
-                
+
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel))
-                        && !rcvUser.silencedUsers[connectedUser.getName()])
+                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)) && !rcvUser.silencedUsers[connectedUser.getName()])
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
@@ -181,7 +322,6 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                             rcvUser.userSocket.get()->sendString(sendString);
                         }
                     }
-                
                 }
                 catch (std::string e)
                 {
@@ -191,20 +331,23 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             else
             {
                 //CHECK TO SEE IF USER EXISTS!!!
-                cs457::user &rcvUser = getUser(recipient);
-                //in future, will be for loop for each user in params[0]
-                //check to see if they're online and visible
-                if (rcvUser.socketActive && !rcvUser.i && !rcvUser.silencedUsers[connectedUser.getName()])
+                if (userExists(recipient))
                 {
-                    std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
-                    //sends the recipient the string, although we take out other recipients.
-                    //Might not be necessary. Maybe only need to strip channels?
-                    rcvUser.userSocket.get()->sendString(sendString);
-                }
-                else if (!rcvUser.silencedUsers[connectedUser.getName()])
-                {
-                    //sends away message if the user is away. But not if they silenced.
-                    connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
+                    cs457::user &rcvUser = getUser(recipient);
+                    //in future, will be for loop for each user in params[0]
+                    //check to see if they're online and visible
+                    if (rcvUser.socketActive && !rcvUser.i && !rcvUser.silencedUsers[connectedUser.getName()])
+                    {
+                        std::string sendString = ":" + message.name + " PRIVMSG " + recipient + " :" + message.params[1] + "\r\n";
+                        //sends the recipient the string, although we take out other recipients.
+                        //Might not be necessary. Maybe only need to strip channels?
+                        rcvUser.userSocket.get()->sendString(sendString);
+                    }
+                    else if (!rcvUser.silencedUsers[connectedUser.getName()])
+                    {
+                        //sends away message if the user is away. But not if they silenced.
+                        connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
+                    }
                 }
             }
         }
@@ -239,8 +382,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                     //send to each member of the channel.
                     for (cs457::user &rcvUser : rcvChannel.members)
                     {
-                        if (rcvUser.socketActive && rcvUser.s && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel))
-                        && !rcvUser.silencedUsers[connectedUser.getName()])
+                        if (rcvUser.socketActive && rcvUser.s && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)) && !rcvUser.silencedUsers[connectedUser.getName()])
                         {
                             //does pretty much the same as below. Client should check recipient to see if its a channel then?
                             std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
@@ -258,18 +400,21 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
             else
             {
                 //CHECK TO SEE IF USER EXISTS!!!
-                cs457::user &rcvUser = getUser(recipient);
-                //in future, will be for loop for each user in params[0]
-                if (rcvUser.socketActive && rcvUser.s && !rcvUser.silencedUsers[connectedUser.getName()])
+                if (userExists(recipient))
                 {
-                    std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
-                    //sends the recipient the string, although we take out other recipients.
-                    //Might not be necessary. Maybe only need to strip channels?
-                    rcvUser.userSocket.get()->sendString(sendString);
-                }
-                else
-                {
-                    //do nothing cause its notice.
+                    cs457::user &rcvUser = getUser(recipient);
+                    //in future, will be for loop for each user in params[0]
+                    if (rcvUser.socketActive && rcvUser.s && !rcvUser.silencedUsers[connectedUser.getName()])
+                    {
+                        std::string sendString = ":" + message.name + " NOTICE " + recipient + " :" + message.params[1] + "\r\n";
+                        //sends the recipient the string, although we take out other recipients.
+                        //Might not be necessary. Maybe only need to strip channels?
+                        rcvUser.userSocket.get()->sendString(sendString);
+                    }
+                    else
+                    {
+                        //do nothing cause its notice.
+                    }
                 }
             }
         }
@@ -343,8 +488,12 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     {
         double seconds = difftime(time(NULL), startTime);
         int rounded = (int)seconds;
-        std::string response = "Server info: \n\t*Uptime: " + std::to_string(rounded) +
-                               " seconds.\n\t*Compilation: recently\r\n";
+        std::string response;
+        if (banner.size() > 0)
+            response += "\n" + banner;
+        response += "\nServer info: \n\t*Uptime: " + std::to_string(rounded) +
+                    " seconds.\n\t*Compilation: recently\r\n";
+        cout << response << endl;
         connectedUser.userSocket.get()->sendString(response);
         return 2;
     }
@@ -353,21 +502,24 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     else if (message.command == "INVITE")
     {
         std::string recipient = message.params[0];
-        cs457::user &rcvUser = getUser(recipient);
+        if (userExists(recipient))
+        {
+            cs457::user &rcvUser = getUser(recipient);
 
-        if (rcvUser.socketActive)
-        {
-            std::string sendString = ":" + message.name + " INVITE " + recipient + " :" + message.params[1] + "\r\n";
-            //sends the recipient the string, although we take out other recipients.
-            //Might not be necessary. Maybe only need to strip channels?
-            rcvUser.userSocket.get()->sendString(sendString);
+            if (rcvUser.socketActive)
+            {
+                std::string sendString = ":" + message.name + " INVITE " + recipient + " :" + message.params[1] + "\r\n";
+                //sends the recipient the string, although we take out other recipients.
+                //Might not be necessary. Maybe only need to strip channels?
+                rcvUser.userSocket.get()->sendString(sendString);
+            }
+            else
+            {
+                connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
+            }
+            channel &chan = getChannel(message.params[1]);
+            chan.userStatusMap[recipient].i = true; //set the user to invited.
         }
-        else
-        {
-            connectedUser.userSocket.get()->sendString(rcvUser.getAwayMessage() + "\r\n");
-        }
-        channel &chan = getChannel(message.params[1]);
-        chan.userStatusMap[recipient].i = true; //set the user to invited.
         return 2;
     }
 
@@ -562,7 +714,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     {
         if (connectedUser.getLevel() == "sysop")
         {
-            if (userOnline(message.params[0]))
+            if (userExists(message.params[0]) && userOnline(message.params[0]))
             {
                 cs457::user &victim = getUser(message.params[0]);
                 victim.userSocket.get()->sendString(":" + message.name + " KILL\r\n");
@@ -649,41 +801,41 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
 
     //sends a notification to a invitation only server that the user would like an invite.
     //does not notify private servers.
-    //does not notify open servers. 
+    //does not notify open servers.
     else if (message.command == "KNOCK")
     {
-         try
+        try
+        {
+            std::string recipient = message.params[0];
+            //get the channel by name.
+            cs457::channel &rcvChannel = getChannel(recipient);
+            //send to each member of the channel.
+            //if the channel is invitation only
+            if (rcvChannel.i)
             {
-                std::string recipient = message.params[0];
-                //get the channel by name.
-                cs457::channel& rcvChannel = getChannel(recipient);
-                //send to each member of the channel.
-                //if the channel is invitation only
-                if(rcvChannel.i)
+                for (cs457::user &rcvUser : rcvChannel.members)
                 {
-                    for (cs457::user &rcvUser : rcvChannel.members)
+                    //setting n will also make a server un-knockable. This behavior may not be specified.
+                    if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
                     {
-                        //setting n will also make a server un-knockable. This behavior may not be specified.
-                        if (rcvUser.socketActive && !rcvUser.i && (!rcvChannel.n || userInChannel(connectedUser, rcvChannel)))
-                        {
-                            //does pretty much the same as below. Client should check recipient to see if its a channel then?
-                            std::string sendString = ":" + message.name + " KNOCK " + recipient;
-                            if(message.params.size() > 1)
-                                sendString += " :" + message.params[1] + "\r\n";
-                            else 
-                                sendString += "\r\n";
-                            //sends the recipient the string, although we take out other recipients.
-                            //Might not be necessary. Maybe only need to strip channels?
-                            rcvUser.userSocket.get()->sendString(sendString);
-                        }
+                        //does pretty much the same as below. Client should check recipient to see if its a channel then?
+                        std::string sendString = ":" + message.name + " KNOCK " + recipient;
+                        if (message.params.size() > 1)
+                            sendString += " :" + message.params[1] + "\r\n";
+                        else
+                            sendString += "\r\n";
+                        //sends the recipient the string, although we take out other recipients.
+                        //Might not be necessary. Maybe only need to strip channels?
+                        rcvUser.userSocket.get()->sendString(sendString);
                     }
                 }
             }
-            catch (std::string e)
-            {
-                //Channel not found. Can just ignore for now.
-            }
-            return 2;
+        }
+        catch (std::string e)
+        {
+            //Channel not found. Can just ignore for now.
+        }
+        return 2;
     }
 
     //sets the pass of an already authenticated and connected user. Use this to change from default @
@@ -694,14 +846,14 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     }
 
     //Adds the given users to the silence list(even if they don't exist.)
-    //Or if no users are given, returns the silence list. 
+    //Or if no users are given, returns the silence list.
     else if (message.command == "SILENCE")
     {
-        if(message.params.size() < 1)
+        if (message.params.size() < 1)
         {
             //return the list of silenced users
             std::string retStr = "\nList of banned silenced users: ";
-            for(auto u : connectedUser.silencedUsers)
+            for (auto u : connectedUser.silencedUsers)
             {
                 retStr += "\n*" + u.first;
             }
@@ -710,8 +862,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         }
         else
         {
-            //silence all users in list. 
-            for(std::string user : message.params)
+            //silence all users in list.
+            for (std::string user : message.params)
             {
                 connectedUser.silencedUsers[user] = true;
             }
@@ -853,25 +1005,38 @@ cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> c
         cs457::user &myref = userMap.at(connectedUser.getName());
         return myref;
     }
-    else if(!userOnline(connectedUser.getName()))
+    else if (!userOnline(connectedUser.getName()))
     {
+        bool banned = false;
+        for (std::string u : bannedUsers)
+        {
+            if (u == connectedUser.getName())
+                banned = true;
+        }
         //already seen, so have to check password.
         cs457::user &returnedUser = getUser(connectedUser.getName());
-        if (returnedUser.checkPassword(connectedUser.getPassword()))
+        if (returnedUser.checkPassword(connectedUser.getPassword()) && !banned)
         {
             returnedUser.setSocket(clientSocket);
             returnedUser.socketActive = true;
             return returnedUser;
         }
-        else
+        else if (!banned)
         {
             connectedUser.userSocket.get()->sendString("Failed password attempt. Please reconnect.\r\n");
             connectedUser.closeSocket();
             (*cont) = false;
             return returnedUser;
         }
+        else
+        {
+            connectedUser.userSocket.get()->sendString("You are banned.\r\n");
+            connectedUser.closeSocket();
+            (*cont) = false;
+            return returnedUser;
+        }
     }
-    else 
+    else
     {
         cs457::user &returnedUser = getUser(connectedUser.getName());
         connectedUser.userSocket.get()->sendString("This nickname is taken. Please try another.\r\n");

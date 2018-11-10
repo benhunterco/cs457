@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <fstream>
 #include "tcpUserSocket.h"
 #include "tcpServerSocket.h"
 #include "Parsing.h"
@@ -60,6 +61,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             //or possibly, socket was killed elsewhere!
             if(verbose)
                 cout << "\n[SERVER] Client " << id << " Disconnected\n[SERVER]>"<<std::flush;
+            connectedUser.socketActive = false;
             cont = false;
             break;
         }
@@ -118,7 +120,8 @@ void adminCommands(cs457::server *myServer)
                 //should print out the keys in uMap.
                 cout << "Key: " << u.first << endl;
                 cout << "Socket: " << u.second.getName() << endl;
-                cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
+                if(u.second.userSocket)
+                    cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
                 cout << "Connected: " << u.second.socketActive << endl;
                 cout << "Level: " << u.second.getLevel() << endl;
             }
@@ -165,6 +168,42 @@ void adminCommands(cs457::server *myServer)
             cout << "Found channels:\n"
                  << channels;
         }
+        else if (message.command == "WUSERS")
+        {
+            myServer->writeUsers();
+        }
+        else if (message.command == "RUSERS")
+        {
+            myServer->readUsers();
+        }
+        else if (message.command == "WBANS")
+        {
+            myServer->writeBans();
+        }
+        else if (message.command == "WCHANNELS")
+        {
+            myServer->writeChannels();
+        }
+        else if (message.command == "RCHANNELS")
+        {
+            myServer->readChannels();
+        }
+        else if (message.command == "RBANNER")
+        {
+            myServer->readBanner();
+        }
+        else if (message.command == "VERBOSE")
+        {
+            if (message.params.size() > 0)
+            {
+                if (message.params[0] == "true")
+                    verbose = true;
+                else 
+                    verbose = false;
+            }
+            else
+                verbose = !verbose;
+        }
         else
         {
             if(command.length() > 0)
@@ -174,7 +213,7 @@ void adminCommands(cs457::server *myServer)
 }
 
 int port = 2000;
-string configFile = "chatserver.conf";
+string configFile("conf/chatserver.conf");
 string db = "db/";
 
 int main(int argc, char *argv[])
@@ -208,6 +247,39 @@ int main(int argc, char *argv[])
             abort();
         }
 
+    //parse the config file.
+    if(configFile.length() > 0)
+    {
+        //we got to parse that bad boy.
+        std::ifstream config(configFile);
+        
+        if(config.is_open())
+        {
+             std::string line;
+             
+            while(getline(config, line))
+            {
+                
+                if(line[0] != '#')
+                {
+                    std::istringstream iss(line);
+                    std::string value; std::string attribute;   
+                    iss >> attribute;                                        
+                    iss >> value;                    
+                    if(attribute == "port")
+                        port = stoi(value);                    
+                    else if (attribute == "dbpath")
+                    {
+                        db = value;
+                        myServer.dbPath = value;
+                    }
+                }
+            }
+        }
+        else   
+            std::cerr << "file could not be opened";
+    }
+
     cout <<"***************Starting Server***************\n";
     cout << "Initializing Socket on port " << port << std::endl;
     cs457::tcpServerSocket mysocket(port);
@@ -222,6 +294,8 @@ int main(int argc, char *argv[])
     //This map, with key of nickname will keep track of connected clients
 
     cout <<"***************Started Server****************\n";
+    if(debug)
+        cout << "VALS " << db << " " << port << endl;
     thread adminThread(adminCommands, &myServer);
     while (ready)
     {

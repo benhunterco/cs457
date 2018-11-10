@@ -70,6 +70,14 @@ int cs457::client::command(std::string command)
             std::cout<< "Client version 1.0\n";
             send(command);
         }
+
+        //if the command is a privmsg, save the recipient so next command will go to them
+        else if (msg.command == "PRIVMSG")
+        {
+            sendDirect = true;
+            directUserOrChannel = msg.params[0];
+            send(command);
+        }
         else
         {
             //let the server deal with it.
@@ -79,6 +87,11 @@ int cs457::client::command(std::string command)
     else
     {
         //send to active channel.
+        if(sendDirect)
+        {
+            std::string sendString = " PRIVMSG " + directUserOrChannel + " :" + command + "\r\n";
+            send(sendString);
+        }
     }
     return retVal;
 }
@@ -138,12 +151,6 @@ int cs457::client::rcvCommand()
         else if (message.command == "VERSION")
         {
             std::cout <<"\n"<<message.params[0] << "\n[CLIENT] Input Message or Command: " << std::flush;
-        }
-
-        else if (message.command == "KILL")
-        {
-            std::cout << "\n[CLIENT] Killed by: " << message.name << ". Press enter to continue."<< std::flush;
-            return 0;
         }
         else if (message.command == "NOTICE")
         {
@@ -211,6 +218,11 @@ int cs457::client::rcvCommand()
                 std::cout << "\n[CLIENT] WALLOP'ing from " << message.name << ": " << message.params[0]
                           << "\n[CLIENT] Input Message or Command: " << std::flush;
             }
+        }
+        else if (message.command == "KILL")
+        {
+            std::cout << "\n[CLIENT] Your connection was killed by: " << message.name << "Press enter to continue." << std::endl;
+            return 0;
         }
         else
         {

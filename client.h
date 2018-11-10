@@ -13,7 +13,7 @@ class client
     std::string username = "bobby";
     std::string password = "@";
     int serverport = 2000;
-    std::string configFile = "";
+    std::string configFile = "conf/chatclient.conf";
     std::string testFile = "";
     std::string logFile = "";
     tcpClientSocket* sock;
@@ -28,6 +28,12 @@ class client
 
     //whether to print out debug statements
     bool debug = false;
+
+    bool log = false;
+
+    //managing "active" channel or privmsg
+    std::string directUserOrChannel;
+    bool sendDirect = false;
 
   private:
 };

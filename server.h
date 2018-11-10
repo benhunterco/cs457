@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <istream>
+#include <fstream> 
 #include "Parsing.h"
 #include <time.h>
 /** This class builds a representation of the state of the server.
@@ -51,6 +52,7 @@ class server
     bool removeUser(cs457::user);
     cs457::user& addUserWithSocket(shared_ptr<cs457::tcpUserSocket>, bool*);
     bool addChannel(cs457::user, std::string channelName);
+    bool addChannel(std::string, std::string);
     bool addUserToChannel(cs457::user&, std::string channelName, std::string pass = "@");
     bool userInChannel(cs457::user&, cs457::channel&);
     //std::map<std::string, cs457::user> getUserMap();
@@ -61,11 +63,26 @@ class server
     /*Parses and evaluates the command given. 
       lets see if this is a good way of doing things
       */
+    std::vector<std::string> bannedUsers;
     int command(std::string, cs457::user&);
+    std::string dbPath = "db/";
     std::string listChannels(bool showUsers = false);
     time_t startTime;
     bool userExists(std::string);
     bool userOnline(std::string);
+
+    bool writeUsers();
+    bool writeBans();
+    bool writeChannels();
+
+    bool readUsers();
+    void addUserFromFile(std::string);
+    void addChannelFromFile(std::string);
+    bool readBans();
+    bool readChannels();
+
+    std::string banner;
+    bool readBanner();
 
   private:
     std::map<std::string, cs457::user> userMap;
