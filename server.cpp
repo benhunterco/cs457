@@ -66,6 +66,7 @@ void cs457::server::writeUsers()
         {
             myfile << u.second.toString() + "\n";
         }
+        myfile.close();
     }
 }
 
@@ -79,7 +80,28 @@ void cs457::server::writeBans()
         {
             myfile << u + "\n";
         }
+        myfile.close();
     }
+}
+
+bool cs457::server::readBanner()
+{
+    banner.erase();//empty the current banner.
+    std::string line;
+    ifstream bannerFile(dbPath + "banner.txt");
+    if (bannerFile.is_open())
+    {
+        std::cout << "dfkjsdf;lkja\n";
+        while (getline(bannerFile, line))
+        {
+            banner += line + "\n";
+        }
+        std::cout << banner;
+        bannerFile.close();
+        return true;
+    }
+    else 
+        return false;
 }
 
 bool plusorminus(char pom)
@@ -369,8 +391,12 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     {
         double seconds = difftime(time(NULL), startTime);
         int rounded = (int)seconds;
-        std::string response = "Server info: \n\t*Uptime: " + std::to_string(rounded) +
+        std::string response;
+        if (banner.size() > 0)
+            response += "\n" + banner;
+        response += "\nServer info: \n\t*Uptime: " + std::to_string(rounded) +
                                " seconds.\n\t*Compilation: recently\r\n";
+        cout << response << endl;
         connectedUser.userSocket.get()->sendString(response);
         return 2;
     }

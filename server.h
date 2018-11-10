@@ -77,7 +77,9 @@ class server
     void readUsers();
     void readBans();
     void readChannels();
-    void readBanner();
+
+    std::string banner;
+    bool readBanner();
 
   private:
     std::map<std::string, cs457::user> userMap;
