@@ -1,3 +1,1 @@
-bobby @ user false
-jim @ user false
-jonny fuckmybut user false
+jon @ user true 

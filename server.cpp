@@ -78,6 +78,9 @@ void cs457::server::addUserFromFile(std::string fileLine)
     iss >> pass;
     iss >> level;
     iss >> banned;
+    if(banned == "true")
+        bannedUsers.push_back(uName);
+    //cout << banned;
     addUser(cs457::user(uName, pass, level, banned)); 
 }
 bool cs457::server::readUsers()
