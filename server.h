@@ -70,14 +70,14 @@ class server
     bool userExists(std::string);
     bool userOnline(std::string);
 
-    void writeUsers();
-    void writeBans();
-    void writeChannels();
+    bool writeUsers();
+    bool writeBans();
+    bool writeChannels();
 
     bool readUsers();
     void addUserFromFile(std::string);
-    void readBans();
-    void readChannels();
+    bool readBans();
+    bool readChannels();
 
     std::string banner;
     bool readBanner();

@@ -56,7 +56,7 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     return true;
 }
 
-void cs457::server::writeUsers()
+bool cs457::server::writeUsers()
 {
     remove((dbPath + "users.txt").c_str());
     std::ofstream myfile (dbPath + "users.txt");
@@ -67,7 +67,9 @@ void cs457::server::writeUsers()
             myfile << u.second.toString() + "\n";
         }
         myfile.close();
+        return true;
     }
+    return false;
 }
 
 void cs457::server::addUserFromFile(std::string fileLine)
@@ -93,11 +95,12 @@ bool cs457::server::readUsers()
         {
             addUserFromFile(line);
         }
+        return true;
     }
     return false;
 }
 
-void cs457::server::writeBans()
+bool cs457::server::writeBans()
 {
     remove((dbPath + "banusers.txt").c_str());
     std::ofstream myfile (dbPath + "banusers.txt");
@@ -108,10 +111,12 @@ void cs457::server::writeBans()
             myfile << u + "\n";
         }
         myfile.close();
+        return true;
     }
+    return false;
 }
 
-void cs457::server::writeChannels()
+bool cs457::server::writeChannels()
 {
     remove((dbPath + "channels.txt").c_str());
     std::ofstream myfile (dbPath + "channels.txt");
@@ -128,7 +133,9 @@ void cs457::server::writeChannels()
 
         }
         myfile.close();
+        return true;
     }
+    return false;
 }
 
 bool cs457::server::readBanner()
