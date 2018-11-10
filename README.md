@@ -76,7 +76,25 @@ would set channel #chan to private with a password of cooldudesonly.
 * `/WALLOPS :message here` sends a message to every sysop or user with `w` set, it behaves similarly to `/NOTICE`.
 * `/WHO :real name here` returns all of the users who have the provided real name. 
 
-
+## Server
+The server is run with `./chatServer.out` plus command line arguments. 
+* `-p` is used to set the listening port number (defaults to 2000).
+* `-c` is used to set the config file (defaults to conf/chatserver.conf)
+* `-d` sets the database directory (defaults to db)
+Once the server is started it can immediately accept connections and respond to commands. In addition a admin thread is created with a small set of commands. These do not need the '/' prefix.
+* `USERS` prints out a list of users in the prompt with some additional diagnostic information.
+* `PING <userName>` sends a ping to userName. The client responds with a PONG command, which the server prints on recieval.
+* `EXIT` Exits the system. 
+* `KILL <userName>` disconnects userName.
+* `CHANNELS` provides similar output to `/LIST` but includes all channels and their members.
+* `WUSERS` writes the current users to users.txt.
+* `RUSERS` reads users.txt and populates its list of users. This lets passwords be preserved.
+* `RBANS` reads the banusers.txt and populates the ban list. Connnects with these nicknames are rejected. 
+* `WBANS` writes out the current banned users to banusers.txt. However, there is not yet a serverside mechanism to ban users, so they shoud be added to banusers.txt by hand.
+* `WCHANNELS` writes the current channels and their passwords to channels.txt
+* `RCHANNELS` reads channels.txt and creates those channels with the appropriate passwords.
+* `RBANNER` reads in banner.txt, which is added to the output for the `/INFO` command. 
+* `VERBOSE <true/false>` sets the server to be verbose or not. This silences information about connecting users and other information. 
 
 
 
