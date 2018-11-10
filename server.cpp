@@ -85,6 +85,22 @@ void cs457::server::addUserFromFile(std::string fileLine)
     //cout << banned;
     addUser(cs457::user(uName, pass, level, banned)); 
 }
+
+void cs457::server::addChannelFromFile(std::string fileLine)
+{
+
+    std::istringstream iss(fileLine);
+    std::string uName; std::string pass; std::string level; std::string banned;
+    iss >> uName;                                        
+    iss >> pass;
+    iss >> level;
+    iss >> banned;
+    if(banned == "true")
+        bannedUsers.push_back(uName);
+    //cout << banned;
+    addUser(cs457::user(uName, pass, level, banned)); 
+}
+
 bool cs457::server::readUsers()
 {
     std::string line;

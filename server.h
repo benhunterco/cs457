@@ -76,6 +76,7 @@ class server
 
     bool readUsers();
     void addUserFromFile(std::string);
+    void addChannelFromFile(std::string);
     bool readBans();
     bool readChannels();
 
