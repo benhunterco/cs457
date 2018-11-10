@@ -914,14 +914,17 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         std::string retStr;
         for (auto u : getUsers())
         {
-            retStr += "\nUser: " + u.second.getName();
-            if (u.second.getRealName().length() > 0)
-                retStr += "\n\tRealName: " + u.second.getRealName();
-            retStr += "\n\tLevel: " + u.second.getLevel();
-            if (u.second.socketActive)
-                retStr += "\n\tConnection Status: Online";
-            else
-                retStr += "\n\tConnection Status: Offline";
+            if(!u.second.i)
+            {
+                retStr += "\nUser: " + u.second.getName();
+                if (u.second.getRealName().length() > 0)
+                    retStr += "\n\tRealName: " + u.second.getRealName();
+                retStr += "\n\tLevel: " + u.second.getLevel();
+                if (u.second.socketActive)
+                    retStr += "\n\tConnection Status: Online";
+                else
+                    retStr += "\n\tConnection Status: Offline";
+            }
         }
         if (retStr.length() > 0)
         {
@@ -983,6 +986,13 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         }
         else
             connectedUser.userSocket.get()->sendString("None of the given users were found!\r\n");
+        return 2;
+    }
+
+    //accepts the pong back
+    else if (message.command == "PONG")
+    {
+        std::cout << "\n[SERVER] Recieved PONG back from: " << message.name <<"\n[SERVER]>" << std::flush;
         return 2;
     }
 

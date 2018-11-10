@@ -114,7 +114,7 @@ int cs457::client::rcvCommand()
 
         //Respond to the ping command by sending a pong.
         if (message.command == "PING")
-            sock->sendString("PONG", true);
+            sock->sendString(":" + username + " PONG", true);
 
         else if (message.command == "QUIT")
         {
@@ -189,7 +189,8 @@ int cs457::client::rcvCommand()
         }
         else if (message.command == "INVITE")
         {
-            std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."<<std::endl;
+            std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."
+            << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
         else if (message.command == "TOPIC")
         {
