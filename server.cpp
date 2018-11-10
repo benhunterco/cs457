@@ -99,6 +99,20 @@ bool cs457::server::readUsers()
     }
     return false;
 }
+bool cs457::server::readChannels()
+{
+    std::string line;
+    ifstream userStream(dbPath + "channels.txt");
+    if(userStream.is_open())
+    {
+        while(getline(userStream, line))
+        {
+            addChannelFromFile(line);
+        }
+        return true;
+    }
+    return false;
+}
 
 bool cs457::server::writeBans()
 {
