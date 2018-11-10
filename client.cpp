@@ -74,10 +74,8 @@ int cs457::client::command(std::string command)
         //if the command is a privmsg, save the recipient so next command will go to them
         else if (msg.command == "PRIVMSG")
         {
-            activePrivMsg = true;
-            //no longer send to channel if we were.
-            activeChannel = false;
-            directUser = msg.params[0];
+            sendDirect = true;
+            directUserOrChannel = msg.params[0];
             send(command);
         }
         else
@@ -89,9 +87,9 @@ int cs457::client::command(std::string command)
     else
     {
         //send to active channel.
-        if(activePrivMsg)
+        if(sendDirect)
         {
-            std::string sendString = " PRIVMSG " + directUser + " :" + command + "\r\n";
+            std::string sendString = " PRIVMSG " + directUserOrChannel + " :" + command + "\r\n";
             send(sendString);
         }
     }
