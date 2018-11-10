@@ -184,6 +184,10 @@ void adminCommands(cs457::server *myServer)
         {
             myServer->writeChannels();
         }
+        else if (message.command == "RCHANNELS")
+        {
+            myServer->readChannels();
+        }
         else if (message.command == "RBANNER")
         {
             myServer->readBanner();

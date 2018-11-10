@@ -56,6 +56,20 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
     return true;
 }
 
+bool cs457::server::addChannel(std::string channelName, std::string password)
+{
+    cs457::channel newChannel;
+    newChannel.name = channelName;
+    newChannel.password = password;
+    if(newChannel.password != "@")
+    {
+        newChannel.p = true;
+        newChannel.k = true;
+    }
+    channels.push_back(newChannel);
+    return true;
+}
+
 bool cs457::server::writeUsers()
 {
     remove((dbPath + "users.txt").c_str());
@@ -90,15 +104,10 @@ void cs457::server::addChannelFromFile(std::string fileLine)
 {
 
     std::istringstream iss(fileLine);
-    std::string uName; std::string pass; std::string level; std::string banned;
-    iss >> uName;                                        
+    std::string channelName; std::string pass;
+    iss >> channelName;                                        
     iss >> pass;
-    iss >> level;
-    iss >> banned;
-    if(banned == "true")
-        bannedUsers.push_back(uName);
-    //cout << banned;
-    addUser(cs457::user(uName, pass, level, banned)); 
+    addChannel(channelName, pass); 
 }
 
 bool cs457::server::readUsers()
