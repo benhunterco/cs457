@@ -60,7 +60,7 @@ int cs457::client::command(std::string command)
         else if (msg.command == "OPER")
         {
             if(msg.params.size() < 2){
-                std::cout << "[CLIENT] <userName> <password> is required for /KICK. \n";
+                std::cout << "[CLIENT] <userName> <password> is required for /OPER. \n";
             }
             else
                 send(command);
