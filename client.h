@@ -31,6 +31,13 @@ class client
 
     bool log = false;
 
+    //managing "active" channel or privmsg
+    std::string directUser;
+    bool activePrivMsg = true;
+
+    std::string directChannel;
+    bool activeChannel = true;
+
   private:
 };
 } // namespace cs457

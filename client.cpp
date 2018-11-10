@@ -70,6 +70,16 @@ int cs457::client::command(std::string command)
             std::cout<< "Client version 1.0\n";
             send(command);
         }
+
+        //if the command is a privmsg, save the recipient so next command will go to them
+        else if (msg.command == "PRIVMSG")
+        {
+            activePrivMsg = true;
+            //no longer send to channel if we were.
+            activeChannel = false;
+            directUser = msg.params[0];
+            send(command);
+        }
         else
         {
             //let the server deal with it.
@@ -79,6 +89,11 @@ int cs457::client::command(std::string command)
     else
     {
         //send to active channel.
+        if(activePrivMsg)
+        {
+            std::string sendString = " PRIVMSG " + directUser + " :" + command + "\r\n";
+            send(sendString);
+        }
     }
     return retVal;
 }
