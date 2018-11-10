@@ -192,6 +192,18 @@ void adminCommands(cs457::server *myServer)
         {
             myServer->readBanner();
         }
+        else if (message.command == "VERBOSE")
+        {
+            if (message.params.size() > 0)
+            {
+                if (message.params[0] == "true")
+                    verbose = true;
+                else 
+                    verbose = false;
+            }
+            else
+                verbose = !verbose;
+        }
         else
         {
             if(command.length() > 0)
