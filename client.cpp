@@ -206,6 +206,11 @@ int cs457::client::rcvCommand()
                           << "\n[CLIENT] Input Message or Command: " << std::flush;
             }
         }
+        else if (message.command == "KILL")
+        {
+            std::cout << "\n[CLIENT] Your connection was killed by: " << message.name << "Press enter to continue." << std::endl;
+            return 0;
+        }
         else
         {
             // just echo out what we recieved.
