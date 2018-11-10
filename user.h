@@ -26,7 +26,7 @@ public:
   bool banned;
   bool socketActive;
   
-  user(std::string uname, std::string password = "@", std::string level = "user",
+  user(std::string uname, std::string password = "@", std::string level = "user", std::string banStatus = "false",
        shared_ptr<cs457::tcpUserSocket> inputSocket = nullptr);
   user(shared_ptr<cs457::tcpUserSocket> inputSocket);
   int closeSocket();

@@ -70,6 +70,30 @@ void cs457::server::writeUsers()
     }
 }
 
+void cs457::server::addUserFromFile(std::string fileLine)
+{
+    std::istringstream iss(fileLine);
+    std::string uName; std::string pass; std::string level; std::string banned;
+    iss >> uName;                                        
+    iss >> pass;
+    iss >> level;
+    iss >> banned;
+    addUser(cs457::user(uName, pass, level, banned)); 
+}
+bool cs457::server::readUsers()
+{
+    std::string line;
+    ifstream userStream(dbPath + "users.txt");
+    if(userStream.is_open())
+    {
+        while(getline(userStream, line))
+        {
+            addUserFromFile(line);
+        }
+    }
+    return false;
+}
+
 void cs457::server::writeBans()
 {
     remove((dbPath + "banusers.txt").c_str());
@@ -91,13 +115,11 @@ bool cs457::server::readBanner()
     ifstream bannerFile(dbPath + "banner.txt");
     if (bannerFile.is_open())
     {
-        std::cout << "dfkjsdf;lkja\n";
         while (getline(bannerFile, line))
         {
             banner += line + "\n";
         }
         std::cout << banner;
-        bannerFile.close();
         return true;
     }
     else 

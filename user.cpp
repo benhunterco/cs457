@@ -23,7 +23,7 @@ void cs457::user::setSocket(shared_ptr<cs457::tcpUserSocket> inputSocket)
 
 //c++ is weird, watch the defaults here. 
 cs457::user::user(std::string uname, std::string pword /*= "@"*/,
-                  std::string lvl /*= "user"*/, shared_ptr<cs457::tcpUserSocket> inputSocket /*= nullptr*/)
+                  std::string lvl /*= "user"*/, std::string banStatus, shared_ptr<cs457::tcpUserSocket> inputSocket /*= nullptr*/)
 {
     username = uname;
     password = pword;
@@ -38,6 +38,10 @@ cs457::user::user(std::string uname, std::string pword /*= "@"*/,
         userSocket = nullptr;
         socketActive = false;
     }
+    if (banStatus == "true")
+        banned = true;
+    else
+        banned = false;
 }
 
 //This is the one I'm using right now for adding as the connect. 

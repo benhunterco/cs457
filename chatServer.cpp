@@ -61,6 +61,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             //or possibly, socket was killed elsewhere!
             if(verbose)
                 cout << "\n[SERVER] Client " << id << " Disconnected\n[SERVER]>"<<std::flush;
+            connectedUser.socketActive = false;
             cont = false;
             break;
         }
@@ -119,7 +120,8 @@ void adminCommands(cs457::server *myServer)
                 //should print out the keys in uMap.
                 cout << "Key: " << u.first << endl;
                 cout << "Socket: " << u.second.getName() << endl;
-                cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
+                if(u.second.userSocket)
+                    cout << "UniqueID: " << u.second.userSocket.get()->getUniqueIdentifier() << endl;
                 cout << "Connected: " << u.second.socketActive << endl;
                 cout << "Level: " << u.second.getLevel() << endl;
             }
@@ -169,6 +171,10 @@ void adminCommands(cs457::server *myServer)
         else if (message.command == "WUSERS")
         {
             myServer->writeUsers();
+        }
+        else if (message.command == "RUSERS")
+        {
+            myServer->readUsers();
         }
         else if (message.command == "WBANS")
         {
@@ -224,7 +230,6 @@ int main(int argc, char *argv[])
     //parse the config file.
     if(configFile.length() > 0)
     {
-        
         //we got to parse that bad boy.
         std::ifstream config(configFile);
         
