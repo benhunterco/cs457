@@ -557,7 +557,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         {
             connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", has never been online.\r\n");
         }
-        return true;
+        return 2;
     }
 
     //sets the user to a sysop if passowrd is correct
