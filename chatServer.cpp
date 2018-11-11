@@ -20,15 +20,17 @@ using namespace std;
 
 bool ready = true;
 
-//In the future, use this to silence or enable printing.
 bool verbose = true;
 bool debug = false;
-//add user map parameter.
+
+
+// handles the client connection. This lives on its own thread and does lots of calling to server command.
 int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server *myServer)
 {
 
     bool cont = true; //two means go, 1 means leave, 0 means die.
-    //first, we register the user. Could be its own method?
+    
+    //Handles the result of the user connection. 
     cs457::user &connectedUser = myServer->addUserWithSocket(clientSocket, &cont);
     if(cont){
         if(verbose){
@@ -43,11 +45,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             "\n[SERVER]>"<<std::flush;
         }
     }
-    /**
-     * here the client should send in their pass and user info. 
-     * Then we can create a user for them.
-     * We'll use the format of IRC messages for this I think. 
-     */
+   
     string msg;
     ssize_t val;
     while (cont)
@@ -66,12 +64,13 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
             break;
         }
         //call server command
-        //return value could be boolean, indicates whether to continue.
+        //return value tells this thread what to do.
         int ret = myServer->command(msg, connectedUser);
         if (debug)
         {
             cout << "[DEBUG] The client is sending message " << msg << " -- With value return = " << val << endl;
             string s = "[DEBUG] The client is sending message:" + msg + "\n";
+            //this sort of sending isn't really necessary. Why thead like this when you join write after, this thread still waits.
             thread childT1(&cs457::tcpUserSocket::sendString, clientSocket.get(), s, true);
             childT1.join();
         }
@@ -81,6 +80,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
         }
        
         //deterimine whether we should continue.
+        //Has a different returnes. 0 should shutdown, 1 breaks out, 2 continues.
         switch (ret)
         {
             case 0:
@@ -97,7 +97,6 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket, int id, cs457::server
 
     }
 
-    //remove client from map here.
     return 1;
 }
 
@@ -112,7 +111,7 @@ void adminCommands(cs457::server *myServer)
         getline(cin, command);
         //adds returns stuff that the parser wants, not automatic with getline.
         Parsing::IRC_message message(command + "\r\n");
-        //enum of commands?
+        //prints out the users with additional info
         if (message.command == string("USERS"))
         {
             for (auto u : myServer->getUsers())
@@ -126,6 +125,7 @@ void adminCommands(cs457::server *myServer)
                 cout << "Level: " << u.second.getLevel() << endl;
             }
         }
+        //sends a ping to the given server
         else if (message.command == string("PING"))
         {
             if (message.params.size() > 1)
@@ -141,12 +141,14 @@ void adminCommands(cs457::server *myServer)
                 pingUser.userSocket.get()->sendString("PING", true);
             }
         }
+        //exist, not gracefully
         else if (message.command == string("EXIT"))
         {
             continueAdmin = false;
             //Kill all threads and disconect clients here!
             exit(0);
         }
+        //closes the connection of a given user.
         else if (message.command == "KILL")
         {
             if (myServer->userOnline(message.params[0]))
@@ -162,12 +164,15 @@ void adminCommands(cs457::server *myServer)
                 std::cout << "\n[SERVER]>" <<std::flush;
             }
         }
+        //lists out the users and includes hidden channels and users
         else if (message.command == "CHANNELS")
         {
             std::string channels = myServer->listChannels(/*showusers = */ true);
             cout << "Found channels:\n"
                  << channels;
         }
+
+        //file io described elsewhere.
         else if (message.command == "WUSERS")
         {
             myServer->writeUsers();
@@ -213,7 +218,7 @@ void adminCommands(cs457::server *myServer)
 }
 
 int port = 2000;
-string configFile("conf/chatserver.conf");
+string configFile;
 string db = "db/";
 
 int main(int argc, char *argv[])
@@ -247,7 +252,7 @@ int main(int argc, char *argv[])
             abort();
         }
 
-    //parse the config file.
+    //parse the config file if we got one.
     if(configFile.length() > 0)
     {
         //we got to parse that bad boy.
@@ -259,7 +264,7 @@ int main(int argc, char *argv[])
              
             while(getline(config, line))
             {
-                
+                //ignores comments
                 if(line[0] != '#')
                 {
                     std::istringstream iss(line);
@@ -294,9 +299,14 @@ int main(int argc, char *argv[])
     //This map, with key of nickname will keep track of connected clients
 
     cout <<"***************Started Server****************\n";
+    //lets you see config file success.
     if(debug)
         cout << "VALS " << db << " " << port << endl;
+
+    //spins off the admin thread to allow interactive commands.
     thread adminThread(adminCommands, &myServer);
+
+    //while we continue, accept new connections.
     while (ready)
     {
         shared_ptr<cs457::tcpUserSocket> clientSocket;
@@ -313,7 +323,6 @@ int main(int argc, char *argv[])
               // threadList.push_back(t);
     }
 
-    //somehow get users associated?.
     for (auto &t : threadList)
     {
         t.get()->join();
