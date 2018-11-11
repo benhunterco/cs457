@@ -50,6 +50,7 @@ cs457::user::user(shared_ptr<cs457::tcpUserSocket> inputSocket)
     userSocket = inputSocket;
     socketActive = true;
     std::string msg; int val;
+    //recieve the first command from the client to attempt to build a new user.
     tie(msg, val) = userSocket.get()->recvString();
     if(val > 0){
         //append the crlf thing???
@@ -93,6 +94,7 @@ void cs457::user::setAwayMessage(std::string newMessage)
 
 std::string cs457::user::toString()
 {
+    //helpful for the file writing.
     std::string ban;
     if(banned)
         ban = "true";

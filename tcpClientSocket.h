@@ -16,6 +16,11 @@ namespace cs457
 
 using namespace std;
 
+/**
+ * uses a combination of stuff from the class skeleton used on the server and online documentation
+ * similar except for a few variable names.
+ * also adds a few debug prints
+ */
 class tcpClientSocket
 {
 

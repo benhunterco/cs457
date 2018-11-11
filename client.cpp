@@ -3,30 +3,40 @@
 size_t cs457::client::send(std::string msg)
 {
     //this should help to clean up the commands a littl bit. Automatically appends stuff.
+    //automatically prepend username, we send on every message
     return sock->sendString(":" + username + " " + msg + "\r\n", true);
 }
 
 size_t cs457::client::registerUser()
 {
     /**send appropriate registration details
+     * first command is pass, which is @ if we haven't set one before.
      */
     std::string registration = "PASS " + password + "\r\n";
     return send(registration);
-    //possibly do passwordy stuff here.
 }
 
+
+//this handles all of the user input commands.
+//does only a couple things and checks a few for correct inpu.
 int cs457::client::command(std::string command)
 {
     int retVal = 1;
+    // in this case, they've typed a command so it should be interpreted
     if (command[0] == '/')
     {
+        //get rid of leading slash
         command = command.substr(1, command.length() - 1);
         Parsing::IRC_message msg(command + "\r\n");
+
+        //quit breaks out of the command loop, as well as notifying the server politely 
+        //   that we are quiting.
         if (msg.command == "QUIT")
         {
             retVal = 0;                                    //un continues.
             send(command); //sends string without slash.
         }
+        //pretty straightforward, just prints help.
         else if (msg.command == "HELP")
         {
             std::cout << "************************************************************************************\n"
@@ -39,6 +49,8 @@ int cs457::client::command(std::string command)
                       << "************************************************************************************\n"
                       << std::flush;
         }
+        //we chang our local variable of username as well as asking the server to do so,
+        //in rcvCommand() we'll see what happens if the nick command is invalid.
         else if (msg.command == "NICK")
         {
             if(msg.params.size() < 1)
@@ -49,6 +61,7 @@ int cs457::client::command(std::string command)
                 send(command);
             }
         }
+        //boundary checking for kick
         else if (msg.command == "KICK")
         {
             if(msg.params.size() < 2){
@@ -57,6 +70,7 @@ int cs457::client::command(std::string command)
             else
                 send(command);
         }
+        //boundary checking for oper.
         else if (msg.command == "OPER")
         {
             if(msg.params.size() < 2){
@@ -65,6 +79,7 @@ int cs457::client::command(std::string command)
             else
                 send(command);
         }
+        //outputs the client version info, then asks the server for its version info
         else if (msg.command == "VERSION")
         {
             std::cout<< "Client version 1.0\n";
@@ -72,6 +87,7 @@ int cs457::client::command(std::string command)
         }
 
         //if the command is a privmsg, save the recipient so next command will go to them
+        //still send the privmsg to the server. Doesn't matter if its a channel or privmsg, save both.
         else if (msg.command == "PRIVMSG")
         {
             sendDirect = true;
@@ -87,6 +103,7 @@ int cs457::client::command(std::string command)
     else
     {
         //send to active channel.
+        //this allows the user to just type and automatically wraps the message in an IRC message.
         if(sendDirect)
         {
             std::string sendString = " PRIVMSG " + directUserOrChannel + " :" + command + "\r\n";
@@ -96,26 +113,35 @@ int cs457::client::command(std::string command)
     return retVal;
 }
 
+
+//this method recieves commands from the server.
+//returns int so it can handle more than just true/false.
 int cs457::client::rcvCommand()
 {
+    //recieving out of the socket. 
     std::string rcvMessage;
     int length;
     tie(rcvMessage, length) = sock->recvString();
 
-    //if the socket is closed, rerurn 0.
+    //if the socket is closed, return 0.
+    //this handles the socket closing on us.
     if (length <= 0)
     {
         std::cout << "\n[CLIENT] Connection to remote host lost. Press Enter to continue." << std::endl;
         return 0;
     }
+    //otherwise there was  something in the socket
     else
     {
+        //parse it.
         Parsing::IRC_message message(rcvMessage);
 
         //Respond to the ping command by sending a pong.
         if (message.command == "PING")
             sock->sendString(":" + username + " PONG", true);
 
+        //This is weird, but the server echos back the quit command to force this thread to quit. 
+        //its an odd way of letting the treads talk to each other, but works.
         else if (message.command == "QUIT")
         {
             //Do not continue
@@ -123,17 +149,23 @@ int cs457::client::rcvCommand()
             return 0;
         }
 
+        //So as we said above, there is interpretation of a nick recieval.
+        //If the nick we asked for is taken or the password is wrong, the server rejects it.
+        //then it sends this message back to change our nickname back. Weird but workds
         else if (message.command == "NICK")
         {
             username = message.params[0];
             std::cout << "\n[CLIENT] " << message.params[1] << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+
+        //Message recieved from either a channel or user!
         else if (message.command == "PRIVMSG")
         {
             //Check to see if it was sent to a channel, if not its private.
             if (message.params[0][0] != '#')
             {
 
+                //outputs from info
                 std::cout << "\n[CLIENT] Message from " << message.name << ": " << message.params[1]
                           << "\n[CLIENT] Input Message or Command: " << std::flush;
             }
@@ -145,13 +177,16 @@ int cs457::client::rcvCommand()
                     std::cout << "\n[CLIENT] Message from " << message.name << " to channel " << message.params[0] << ": "
                               << message.params[1] << "\n[CLIENT] Input Message or Command: " << std::flush;
                 }
-                //don't do anything with it if its to yourself
+                //don't do anything with it if its to yourself!?!
             }
         }
+        //This helped to clean up the version command, which was messy because it all arrived hectically
         else if (message.command == "VERSION")
         {
             std::cout <<"\n"<<message.params[0] << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+
+        //basically same as privmsg
         else if (message.command == "NOTICE")
         {
             //Check to see if it was sent to a channel, if not its private.
@@ -172,6 +207,8 @@ int cs457::client::rcvCommand()
                 //don't do anything with it if its to yourself
             }
         }
+
+        //similar to privmsg, but with some extra info.
         else if (message.command == "KNOCK")
         {
             if(message.name == username)
@@ -187,20 +224,30 @@ int cs457::client::rcvCommand()
                 std::cout << retStr << "\n[CLIENT] Inpue Message or Command: " << std::flush;
             }
         }
+
+        //Interprets an invite from a user.
         else if (message.command == "INVITE")
         {
             std::cout << "\n[CLIENT] "<< message.name << " has invited you to join channel " << message.params[1] << "."
             << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+
+        //handles the response of a topic query.
+        //we don't get anything back when setting the topic
         else if (message.command == "TOPIC")
         {
             std::cout << "\n[CLIENT] topic for channel " << message.params[0] << " is " << message.params[1]
             << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+
+        //This is another weird one. Only recieved on join failure.
+        //will output the reason for join failure like password, invite only or ban.
         else if (message.command == "JOIN")
         {
             std::cout << "\n[CLIENT] " << message.params[0] << "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+
+        //lets you know if you were kicked from a channel.
         else if (message.command == "KICK")
         {
             std::cout << "\n[CLIENT] "<< message.name << " has kicked you from channel: " << message.params[0]<< ".";
@@ -212,6 +259,8 @@ int cs457::client::rcvCommand()
             }
             std::cout<< "\n[CLIENT] Input Message or Command: " << std::flush;
         }
+
+        //similar to notice
         else if (message.command == "WALLOPS")
         {
             if (message.name != username)
@@ -220,11 +269,16 @@ int cs457::client::rcvCommand()
                           << "\n[CLIENT] Input Message or Command: " << std::flush;
             }
         }
+
+        //lets you know who killed you, and ends the rcvcommand thread by returning 0.
         else if (message.command == "KILL")
         {
             std::cout << "\n[CLIENT] Your connection was killed by: " << message.name << " Press enter to continue." << std::endl;
             return 0;
         }
+
+        //some commands are simple and don't require complex formating. 
+        //in these cases, we just output them to the command line. 
         else
         {
             // just echo out what we recieved.
