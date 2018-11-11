@@ -1,5 +1,6 @@
 /* snippets, ideas,  
 
+NOT USED BY MY CODE.
 using namespace std; 
 
 namespace cs457 
