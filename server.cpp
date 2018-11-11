@@ -2,7 +2,7 @@
 
 bool cs457::server::addUser(cs457::user newUser)
 {
-
+    //check to see if user already added. otherwise return false
     if (!userMap.count(newUser.getName()))
     {
         userMap.insert(std::make_pair(newUser.getName(), newUser));
@@ -20,6 +20,7 @@ bool cs457::server::userInChannel(cs457::user &check, cs457::channel &chan)
 {
     for (cs457::user &member : chan.members)
     {
+        //look through all the users to see if we've had them yet.
         if (member.getName() == check.getName())
             return true;
     }
@@ -30,6 +31,7 @@ bool cs457::server::removeUser(cs457::user toRemove)
 {
     if (userExists(toRemove.getName()))
     {
+        //user has to exist to erase
         userMap.erase(toRemove.getName());
         return true;
     }
@@ -39,6 +41,7 @@ bool cs457::server::removeUser(cs457::user toRemove)
 
 bool cs457::server::addChannel(cs457::user requestingUser, std::string channelName)
 {
+    //first checks to see if channel already exists.
     for (cs457::channel c : channels)
     {
         if (c.name == channelName)
@@ -47,17 +50,19 @@ bool cs457::server::addChannel(cs457::user requestingUser, std::string channelNa
         }
     }
 
+    //if it doesn't create the channel and add the requesingUser as op.
     cs457::channel newChannel;
     newChannel.name = channelName;
     newChannel.members.push_back(requestingUser); //can use first member as op???
     newChannel.userStatusMap[requestingUser.getName()].o = true;
-    newChannel.password = "@";
+    newChannel.password = "@"; //all have a password, defaults to @
     channels.push_back(newChannel);
     return true;
 }
 
 bool cs457::server::addChannel(std::string channelName, std::string password)
 {
+    //adds regardless, depends on file being accurate.
     cs457::channel newChannel;
     newChannel.name = channelName;
     newChannel.password = password;
@@ -72,7 +77,9 @@ bool cs457::server::addChannel(std::string channelName, std::string password)
 
 bool cs457::server::writeUsers()
 {
+    //remove the file for fresh write.
     remove((dbPath + "users.txt").c_str());
+    //open stream and write each user using tostring.
     std::ofstream myfile(dbPath + "users.txt");
     if (myfile.is_open())
     {
@@ -88,6 +95,7 @@ bool cs457::server::writeUsers()
 
 void cs457::server::addUserFromFile(std::string fileLine)
 {
+    //parses the input into each component of a user and adds it.
     std::istringstream iss(fileLine);
     std::string uName;
     std::string pass;
@@ -105,7 +113,7 @@ void cs457::server::addUserFromFile(std::string fileLine)
 
 void cs457::server::addChannelFromFile(std::string fileLine)
 {
-
+    //similar to addusertofile, just fewer things to worry about.
     std::istringstream iss(fileLine);
     std::string channelName;
     std::string pass;
@@ -116,6 +124,7 @@ void cs457::server::addChannelFromFile(std::string fileLine)
 
 bool cs457::server::readUsers()
 {
+    //reads each line of users and adds it.
     std::string line;
     ifstream userStream(dbPath + "users.txt");
     if (userStream.is_open())
@@ -130,6 +139,7 @@ bool cs457::server::readUsers()
 }
 bool cs457::server::readChannels()
 {
+    //similar to readusers
     std::string line;
     ifstream userStream(dbPath + "channels.txt");
     if (userStream.is_open())
@@ -145,6 +155,7 @@ bool cs457::server::readChannels()
 
 bool cs457::server::writeBans()
 {
+    //erase banusers.txt for fresh start.
     remove((dbPath + "banusers.txt").c_str());
     std::ofstream myfile(dbPath + "banusers.txt");
     if (myfile.is_open())
@@ -161,6 +172,7 @@ bool cs457::server::writeBans()
 
 bool cs457::server::writeChannels()
 {
+    //erase channels.txt to overwrite old state.
     remove((dbPath + "channels.txt").c_str());
     std::ofstream myfile(dbPath + "channels.txt");
     if (myfile.is_open())
@@ -182,6 +194,7 @@ bool cs457::server::writeChannels()
 
 bool cs457::server::readBanner()
 {
+    //simply reads each line in directly. no parsing requried.
     banner.erase(); //empty the current banner.
     std::string line;
     ifstream bannerFile(dbPath + "banner.txt");
@@ -198,6 +211,7 @@ bool cs457::server::readBanner()
         return false;
 }
 
+//helper method for mode. 
 bool plusorminus(char pom)
 {
     if (pom == '+')
@@ -205,11 +219,14 @@ bool plusorminus(char pom)
     else
         return false;
 }
+
+//returns the users map. 
 std::map<std::string, cs457::user> cs457::server::getUsers()
 {
     return userMap;
 }
 
+//gets a user, throws if not found. careful about that.
 cs457::user &cs457::server::getUser(std::string user)
 {
     if (userMap.find(user) != userMap.end())
@@ -222,6 +239,7 @@ cs457::user &cs457::server::getUser(std::string user)
     }
 }
 
+//similar to getUser throws if there isn't a channel, still be careful.
 cs457::channel &cs457::server::getChannel(std::string &channelName)
 {
     for (cs457::channel &c : channels)
@@ -232,11 +250,12 @@ cs457::channel &cs457::server::getChannel(std::string &channelName)
     throw "Channel " + channelName + " not found";
 }
 
+//interprets the 30 some commands that exist.
 int cs457::server::command(std::string msg, cs457::user &connectedUser)
 {
     Parsing::IRC_message message(msg);
 
-    //go commit die
+    //kills the server dead.
     if (message.command == "DIE")
     {
         if (connectedUser.getLevel() == "sysop")
@@ -498,7 +517,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
-    //Sends an invite to the requested user. Really its just a message.
+    //Sends an invite to the requested user. its a message and an addition of the map in the channel.
     else if (message.command == "INVITE")
     {
         std::string recipient = message.params[0];
@@ -541,7 +560,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return true;
     }
 
-    //sets the user to a sysop
+    //sets the user to a sysop if passowrd is correct
     else if (message.command == "OPER")
     {
         //password = notagoodpassword
@@ -584,6 +603,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     //allows the user to change their mode
     else if (message.command == "MODE")
     {
+
+        //this controls the users mode. Just toggles here
         if (message.params[0][0] != '#')
         {
             for (int i = 1; i < message.params.size(); i++)
@@ -606,13 +627,16 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
                 }
             }
         }
+
+        //this controls the server mode
         else
         {
+            //get the channel and make modifications
             channel &chan = getChannel(message.params[0]);
             for (int i = 1; i < message.params.size(); i++)
             {
                 std::string mode = message.params[i];
-                //means that the first user
+                //only allow operators to make changes
                 if (chan.userStatusMap[connectedUser.getName()].o)
                 {
                     if (mode[1] == 'o')
@@ -664,8 +688,7 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         }
         return 2;
     }
-    //Kicks the user if the requester is a channel operator or above.
-    //Channelop is lowest. We don't really need to grant this, creator is channelop
+    //Kicks the user if the requester is a sysop.
     else if (message.command == "KICK")
     {
         if (userExists(message.params[1]))
@@ -708,8 +731,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
         return 2;
     }
 
-    //disconnects the user by closing they're socket. Could be implemented with the client, but this might be simpler.
-    //kill only takes one parameter. Some users are allowed to do it.
+    //disconnects the user by closing they're socket. 
+    //also sends a kill message which breaks out the clients rcv loop
     else if (message.command == "KILL")
     {
         if (connectedUser.getLevel() == "sysop")
@@ -1007,6 +1030,8 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
 
 cs457::user &cs457::server::addUserWithSocket(shared_ptr<cs457::tcpUserSocket> clientSocket, bool *cont)
 {
+    //the user constructor actually handles the handshaking here. 
+    //so after this call it should have information correct.
     cs457::user connectedUser(clientSocket);
     if (!userExists(connectedUser.getName()))
     {
@@ -1085,10 +1110,12 @@ bool cs457::server::addUserToChannel(cs457::user &requestingUser, std::string ch
 
 std::string cs457::server::listChannels(bool showUsers /*= false*/)
 {
+    //shows users for admin, but not always.
+    //doesn't show secret channels.
     std::string list;
     for (cs457::channel c : channels)
     {
-        if (!c.s)
+        if (!c.s || showUsers)
         {
             std::string attributes = "[";
             if (c.i)
@@ -1117,6 +1144,7 @@ std::string cs457::server::listChannels(bool showUsers /*= false*/)
 
 bool cs457::server::userExists(std::string userName)
 {
+    //checks to see if they exist.
     if (userMap.count(userName))
         return true;
     else
@@ -1125,6 +1153,7 @@ bool cs457::server::userExists(std::string userName)
 
 bool cs457::server::userOnline(std::string userName)
 {
+    //if they exist, are they online?
     if (userExists(userName))
     {
         cs457::user &user = getUser(userName);
