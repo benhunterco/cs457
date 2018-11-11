@@ -545,7 +545,6 @@ int cs457::server::command(std::string msg, cs457::user &connectedUser)
     //checks to see if user is online.
     else if (message.command == "ISON")
     {
-        std::cout <<"here";
         if (userOnline(message.params[0]))
         {
             connectedUser.userSocket.get()->sendString("User: " + message.params[0] + ", is online.\r\n");
